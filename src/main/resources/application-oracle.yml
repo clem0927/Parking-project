@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/FREEPDB1 #오라클 DB를 접속할 URL을 지정한다.
+    driver-class-name: oracle.jdbc.OracleDriver #오라클 JDBC 드라이버 클래스를 지정한다.
+    username: min #DB 접속 계정 이름을 지정한다.
+    password: 1234 #DB 접속 비밀번호를 지정한다.
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect #Hibernate에서 사용할 오라클 방언(dialect)을 지정한다.
+  properties:
+    hibernate: #CamelCase 필드명을 변환하지 않고 DB 컬럼명으로 그대로 매핑한다.
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  sql:
+    init:
+      mode: never #schema.sql, data.sql 같은 초기화 스크립트를 실행하지 않는다
