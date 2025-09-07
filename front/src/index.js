@@ -1,6 +1,20 @@
+// src/index.js
 import React from "react";
 import ReactDOM from "react-dom/client";
-import KakaoMap from "./KaKaoMap";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import KaKaoMap from "./KaKaoMap";
+import Admin from "./pages/Admin";
 
+// 라우팅 컴포넌트
+const App = () => (
+    <BrowserRouter>
+        <Routes>
+            <Route path="/" element={<KaKaoMap />} />
+            <Route path="/admin" element={<Admin />} />
+        </Routes>
+    </BrowserRouter>
+);
+
+// 실제 DOM에 렌더링
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<KakaoMap />);
+root.render(<App />);

@@ -21,7 +21,7 @@ function MapContainer() {
     document.head.appendChild(script);
   }, []);
 
-  return <div id="map" style={{ width: "500px", height: "400px" }}></div>;
+  return <div id="map" style={{ width: "400px", height: "400px" }}></div>;
 }
 
 export default MapContainer;
