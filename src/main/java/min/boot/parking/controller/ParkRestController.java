@@ -87,7 +87,7 @@ public class ParkRestController {
             @RequestParam(defaultValue = "") String searchQuery,
             @RequestParam(defaultValue = "prk_plce_nm") String searchFilter,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "15") int size
     ) {
         return parkService.searchParks(searchFilter, searchQuery, page, size);
     }
