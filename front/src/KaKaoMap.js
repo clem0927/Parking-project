@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {Link} from "react-router-dom";
+import Main from "./components/Main";
 
 function KakaoMap() {
 
@@ -55,8 +56,7 @@ function KakaoMap() {
             <div id="flex-container" style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"center",height:"100vh"}}>
             <div id="main"
                 style={{width:"30%",height:"100%"}}>
-                <h1>Parking</h1>
-                <Link to="/admin">관리자</Link>
+                <Main/>
             </div>
             <div
                 id="map"
