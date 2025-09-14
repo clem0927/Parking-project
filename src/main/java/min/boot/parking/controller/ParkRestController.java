@@ -82,6 +82,8 @@ public class ParkRestController {
         }
         return new ResponseEntity<>(count + "개 주차장 등록 완료", HttpStatus.CREATED);
     }
+    //주차장 실시간 데이터 저장
+
     @GetMapping("/parks")
     public Page<Park> getParks(
             @RequestParam(defaultValue = "") String searchQuery,
