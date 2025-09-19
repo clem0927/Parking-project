@@ -1,6 +1,6 @@
 :root {
     --bg: #f6f6f6;
-    --ink: #111;
+    --ink: #3897f0;
     --muted: #6b7280;
     --line: #ececec;
     --panel: #fff;
@@ -181,7 +181,7 @@ body {
 
 .ghost-btn {
     background: var(--soft);
-    color: var(--ink);
+    color: #374151;
     border: 1px solid var(--line);
     padding: 12px 14px;
     border-radius: 14px;
@@ -263,7 +263,7 @@ body {
 
 .link-btn {
     text-decoration: none;
-    color: var(--ink);
+    color: #374151;
     background: rgba(255, 255, 255, .96);
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -386,4 +386,24 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+/*info window*/
+.my-infowindow {
+    width: 250px;        /* 너비 조절 */
+    padding: 10px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    font-size: 14px;
+    color: #333;
+}
+
+.my-infowindow h4 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: #0078ff;
+}
+
+.my-infowindow p {
+    margin: 2px 0;
 }
