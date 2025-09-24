@@ -1,3 +1,4 @@
+// DrivePanel.js
 import React, { useState, useEffect } from "react";
 
 // 거리 계산 함수 (Haversine 공식)
@@ -16,6 +17,18 @@ const calculateDistance = (lat1, lng1, lat2, lng2) => {
 
 export default function DrivePanel({ map, go, setGO, coordinates, ParkingList }) {
     const [nearbyParking, setNearbyParking] = useState([]);
+
+    const fmtHM = (s) => (s && s.length === 4) ? `${s.slice(0,2)}:${s.slice(2)}` : "-";
+
+    const getStatus = (park) => {
+        const total = Number(park.TPKCT) || 0;
+        const remain = park.remainCnt;
+        if (remain == null || total === 0) return { label: "정보 없음", variant: "gray", pct: 0 };
+        const r = remain / total;
+        if (r >= 0.5) return { label: "여유", variant: "green", pct: Math.round(r*100) };
+        if (r >= 0.2) return { label: "보통", variant: "amber", pct: Math.round(r*100) };
+        return { label: "혼잡", variant: "red", pct: Math.round(r*100) };
+    };
 
     // 주행모드 on/off
     const handleSafeDriveClick = () => {
@@ -87,46 +100,63 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList })
 
             <div className="nearby-parking" style={{ marginTop: 12 }}>
                 {go && nearbyParking.length > 0
-                    ? nearbyParking.map((park, index) => (
-                        <div key={index} className="card parking-card">
-                            <div style={{ display: "flex", alignItems: "center" }}>
-                                <div style={{ fontWeight: "bold" }}>
-                                    {park.PKLT_NM ?? "이름없는 주차장"}
-                                </div>
-                                <button
-                                    className="primary-btn-center"
-                                    style={{ marginLeft: "auto" }}
-                                    onClick={() => {
-                                        const url = `https://map.kakao.com/link/to/${encodeURIComponent(
-                                            park.PKLT_NM
-                                        )},${park.LAT},${park.LOT}`;
-                                        window.open(url, "_blank");
-                                    }}
-                                >
-                                    길찾기
-                                </button>
-                            </div>
-                            <div style={{ color: "#555" }}>
-                                거리: {park.distance < 1
+                    ? nearbyParking.map((park, index) => {
+                        const status = getStatus(park);
+                        const distanceStr =
+                            park.distance < 1
                                 ? `${Math.round(park.distance * 1000)} m`
-                                : `${park.distance.toFixed(2)} km`}
-                            </div>
+                                : `${park.distance.toFixed(2)} km`;
+                        const chargeClass = (park.CHDG_FREE_NM || park.CHGD_FREE_NM) === "무료" ? "green" : "blue";
+                        const pctText = status.pct ? `${status.pct}%` : "—";
 
-                            {/* 주차장 상세 정보 */}
-                            <div style={{ marginTop: 4, fontSize: 12, color: "#333" }}>
-                                <div>총자리: {park.TPKCT}</div>
-                                <div>현재 대수: {park.liveCnt ?? "정보 없음"}</div>
-                                <div>남은 자리: {park.remainCnt ?? "정보 없음"}</div>
-                                <div>운영시간: {park.WD_OPER_BGNG_TM}-{park.WD_OPER_END_TM}</div>
-                                <div>주차장 유형: {park.PKLT_KND_NM}</div>
-                                <div>유료/무료: {park.CHGD_FREE_NM}</div>
-                                <div>연락처: {park.TELNO ?? "-"}</div>
-                            </div>
-                        </div>
-                    ))
-                    : go
-                        ? <div>주차장 탐색중...</div>
-                        : null}
+                        return (
+                            <article key={index} className="ep-drive-card">
+                                <header className="ep-drive-top">
+                                    <h4 className="ep-drive-title">{park.PKLT_NM ?? "이름없는 주차장"}</h4>
+                                    <button
+                                        className="ep-drive-route-btn"
+                                        onClick={() => {
+                                            const url = `https://map.kakao.com/link/to/${encodeURIComponent(
+                                                park.PKLT_NM
+                                            )},${park.LAT},${park.LOT}`;
+                                            window.open(url, "_blank");
+                                        }}
+                                    >
+                                        길찾기
+                                    </button>
+                                </header>
+
+                                <div className="ep-drive-badges">
+                                    <span className="badge blue">{distanceStr}</span>
+                                    <span className={`badge ${chargeClass}`}>{park.CHGD_FREE_NM ?? "-"}</span>
+                                    <span className={`badge ${status.variant}`}>{status.label}</span>
+                                    {park.PKLT_KND_NM && <span className="badge outline">{park.PKLT_KND_NM}</span>}
+                                </div>
+
+                                <div className="ep-drive-stats">
+                                    <div className="ep-stat"><span>총자리</span><b>{park.TPKCT ?? "-"}</b></div>
+                                    <div className="ep-stat"><span>현재</span><b>{park.liveCnt ?? "-"}</b></div>
+                                    <div className="ep-stat"><span>남음</span><b>{park.remainCnt ?? "-"}</b></div>
+                                </div>
+
+                                <div className={`ep-meter ${status.variant}`}>
+                                    <div className="fill" style={{ width: `${status.pct}%` }} />
+                                    <div className="cap">{pctText}</div>
+                                </div>
+
+                                <div className="ep-drive-meta">
+                                    <span>운영시간</span>
+                                    <div>{fmtHM(park.WD_OPER_BGNG_TM)} - {fmtHM(park.WD_OPER_END_TM)}</div>
+
+                                    <span>연락처</span>
+                                    <div>{park.TELNO ?? "-"}</div>
+
+                                    {park.ADDR && (<><span>주소</span><div>{park.ADDR}</div></>)}
+                                </div>
+                            </article>
+                        );
+                    })
+                    : go ? <div>주차장 탐색중...</div> : null}
             </div>
         </div>
     );

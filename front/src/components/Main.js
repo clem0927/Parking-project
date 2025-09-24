@@ -1,3 +1,4 @@
+// Main.js
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../css/Main.css";
@@ -5,6 +6,7 @@ import "../css/Main.css";
 import DestinationPanel from "./panels/DestinationPanel";
 import DrivePanel from "./panels/DrivePanel";
 import FavoritesPanel from "./panels/FavoritesPanel";
+import ParkingChart from "./ParkingChart";
 
 export default function Main() {
     const [mode, setMode] = useState("destination"); // destination | drive | favorites
@@ -14,7 +16,11 @@ export default function Main() {
         lng: 126.9779451,
     }); // 서울시청
     const [go, setGO] = useState(false);
-    const [parkingList, setParkingList] = useState([]); // 최종 mergedParkingList 저장
+    const [parkingList, setParkingList] = useState([]); // 최종 mergedParkingList 저
+    // 장
+
+    const [showModal, setShowModal] = useState(false);
+    const [modalData, setModalData] = useState(null);
 
     // 카카오 지도 초기화
     useEffect(() => {
@@ -60,7 +66,102 @@ export default function Main() {
                 map: map,
                 averageCenter: true,
                 minLevel: 6,
+                styles: [
+                    {
+                        width: "40px",
+                        height: "40px",
+                        background: "#3897f0",
+                        color: "#fff",
+                        textAlign: "center",
+                        lineHeight: "40px",
+                        fontSize: "13px",
+                        fontWeight: "700",
+                        borderRadius: "20px",
+                        border: "2px solid #fff",
+                        boxShadow: "0 4px 12px rgba(0,0,0,.2)"
+                    }
+                ]
             });
+            // 남은 좌석 비율에 따른 브랜드 컬러
+            const colorByRemain = (remain, total) => {
+                if (remain == null || total <= 0) return "#9CA3AF";          // 정보 없음
+                const r = remain / total;
+                if (r >= 0.5) return "#3897f0";            // 파랑
+                if (r >= 0.2) return "#f59e0b";            // 주황
+                return "#ef4444";                           // 빨강
+            };
+
+            // SVG 마커 이미지 생성 (scale로 크기 제어)
+            const buildMarkerImage = (park, scale = 0.75) => {
+                const BASE_W = 44, BASE_H = 56;
+                const w = Math.round(BASE_W * scale);
+                const h = Math.round(BASE_H * scale);
+
+                const total = Number(park.TPKCT) || 0;
+                const remain = (park.remainCnt ?? null);
+                const fill = colorByRemain(remain, total);
+                const label = remain != null ? remain : "–";
+
+                const circleR = 12 * scale;
+                const fontSize = 14 * scale;
+
+                const svg = `
+                <svg width="${w}" height="${h}" viewBox="0 0 44 56" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="${2 * scale}" stdDeviation="${3 * scale}" flood-color="rgba(0,0,0,0.25)"/>
+                    </filter>
+                    </defs>
+                    <path filter="url(#shadow)" d="M22 1c11 0 20 9 20 20 0 14-20 34-20 34S2 35 2 21C2 10 11 1 22 1z" fill="${fill}"/>
+                    <circle cx="22" cy="21" r="${circleR}" fill="#ffffff"/>
+                    <text x="22" y="${25 * scale + (1 - scale) * 25}" font-size="${fontSize}"
+                        font-family="Inter, Apple SD Gothic Neo, Arial" text-anchor="middle"
+                        fill="${fill}" font-weight="700">${label}</text>
+                </svg>`;
+                return new window.kakao.maps.MarkerImage(
+                    "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg),
+                    new window.kakao.maps.Size(w, h),
+                    { offset: new window.kakao.maps.Point(w / 2, h) } // 핀 끝점 보정
+                );
+            };
+
+            // 시간 "HHMM" → "HH:MM"
+            const fmtHM = (s) => (s && s.length === 4) ? `${s.slice(0,2)}:${s.slice(2)}` : (s || "-");
+
+            // 오버레이 HTML 생성
+            const buildOverlayHTML = (park, idx) => {
+                const total  = park.TPKCT ?? "-";
+                const live   = park.liveCnt ?? "정보 없음";
+                const remain = park.remainCnt ?? "정보 없음";
+                const price  = park.PRK_CRG != null ? `${park.PRK_CRG}원` : "정보 없음";
+                const wd     = `${fmtHM(park.WD_OPER_BGNG_TM)} - ${fmtHM(park.WD_OPER_END_TM)}`;
+
+                return `
+                        <div class="ep-overlay">
+                            <div class="ep-overlay__head">
+                                <div class="ep-overlay__title">${park.PKLT_NM || "주차장"}</div>
+                                <div class="ep-overlay__badge">${park.CHGD_FREE_NM || ""}</div>
+                                <button class="ep-close" aria-label="닫기">×</button>
+                            </div>
+                            <div class="ep-overlay__body">
+                                <div class="ep-kv">
+                                    <span>총자리</span><b>${total}</b>
+                                    <span>현재</span><b>${live}</b>
+                                    <span>남음</span><b>${remain}</b>
+                                </div>
+                                <div class="ep-row"><span>가격 (5분당)</span><b>${price}</b></div>
+                                <div class="ep-row"><span>운영시간</span><b>${wd}</b></div>
+                                <div class="ep-row"><span>유형</span><b>${park.PKLT_KND_NM || "-"}</b></div>
+                                <div class="ep-row"><span>전화</span><b>${park.TELNO || "-"}</b></div>
+                            </div>
+                            <div class="ep-overlay__actions">
+                                <button class="ep-overlay__btn" id="detail-zone">상세분석</button>&nbsp
+                                <a target="_blank"
+                                    href="https://map.kakao.com/link/to/${encodeURIComponent(park.PKLT_NM)},${park.LAT},${park.LOT}"
+                                    class="ep-overlay__btn">길찾기</a>
+                            </div>
+                        </div>`;
+                        };
 
             try {
                 // 1. 실시간 정보
@@ -128,45 +229,78 @@ export default function Main() {
                 // 상태 업데이트
                 setParkingList(mergedParkingList);
 
-                console.log("병합된 리스트 예시:", mergedParkingList.slice(0, 30));
+                console.log("최종 리스트 예시:", mergedParkingList);
 
-                // 6. 마커 생성
+                // 6. 마커 생성 (클릭 시 열림, X/밖 클릭으로 닫힘)
+                const overlay = new window.kakao.maps.CustomOverlay({ zIndex: 4, yAnchor: 1.02 });
+                let openedMarker = null;
+
+                // 공통: 오버레이 열기
+                const openOverlay = (park, position, marker, idx) => {
+                    const el = document.createElement("div");
+                    el.innerHTML = buildOverlayHTML(park, idx);
+
+                    // 오버레이 클릭 전파 막기
+                    el.querySelector(".ep-overlay").addEventListener("click", e => e.stopPropagation());
+
+                    // 닫기 버튼
+                    const closeBtn = el.querySelector(".ep-close");
+                    if (closeBtn) {
+                        closeBtn.addEventListener("click", e => {
+                            e.stopPropagation();
+                            overlay.setMap(null);
+                            el.style.transform = "scale(1)";
+                            console.log("닫기");
+                            if (openedMarker) { openedMarker.setZIndex(5); openedMarker = null; }
+                        });
+                    }
+
+                    // 상세분석 버튼
+                    const detailBtn = el.querySelector(`#detail-zone`);
+                    if (detailBtn) {
+                        detailBtn.addEventListener("click", e => {
+                            e.stopPropagation();
+                            setModalData(park);   // 현재 주차장 정보 저장
+                            setShowModal(true);   // 모달 띄우기
+                        });
+                    }
+
+                    overlay.setContent(el);
+                    overlay.setPosition(position);
+                    overlay.setMap(map);
+
+                    if (openedMarker) openedMarker.setZIndex(5);
+                    openedMarker = marker;
+                    marker.setZIndex(1);
+                };
+
+
+
                 const markers = mergedParkingList
                     .map((park) => {
+                        const lat = parseFloat(park.LAT);
+                        const lng = parseFloat(park.LOT);
+                        if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+
+                        const position = new window.kakao.maps.LatLng(lat, lng);
+
                         const marker = new window.kakao.maps.Marker({
-                            position: new window.kakao.maps.LatLng(park.LAT, park.LOT),
-                            title: park.PKLT_NM,
+                            position,
+                            title: park.PKLT_NM ?? "",
+                            image: buildMarkerImage(park, 0.75) // 크기 조정 중이면 배율 그대로
                         });
 
-                        const infowindow = new window.kakao.maps.InfoWindow({
-                            content: `
-                            <div class="my-infowindow">
-                                <h4>${park.PKLT_NM}</h4>
-                                <p>총자리: ${park.TPKCT}</p>
-                                <p>현재 대수: ${park.liveCnt ?? "정보 없음"}</p>
-                                <p>남은 자리: ${park.remainCnt ?? "정보 없음"}</p>
-                                <p>가격: ${park.PRK_CRG ?? "정보 없음"}원</p>
-                            </div>
-                        `,
-                            removable: true // 오른쪽 상단 닫기 버튼 추가
+                        // ✅ 클릭으로 열기 (hover 로직 제거!)
+                        window.kakao.maps.event.addListener(marker, "click", () => {
+                            openOverlay(park, position, marker);
                         });
-
-                        window.kakao.maps.event.addListener(
-                            marker,
-                            "mouseover",
-                            () => infowindow.open(map, marker)
-                        );
-                        window.kakao.maps.event.addListener(
-                            marker,
-                            "mouseout",
-                            () => infowindow.close()
-                        );
 
                         return marker;
                     })
-                    .filter((m) => m !== null);
+                    .filter(Boolean);
 
                 clusterer.addMarkers(markers);
+
             } catch (err) {
                 console.error("공공 API 불러오기 실패:", err);
             }
@@ -256,6 +390,17 @@ export default function Main() {
                     style={{ width: "100%", height: "100%" }}
                 />
             </main>
+            {showModal && modalData && (
+                <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h2>{modalData.PKLT_NM}</h2>
+                        <ParkingChart />   {/* 차트 컴포넌트 추가 */}
+                        <button onClick={() => setShowModal(false)} className="modal-close">
+                            닫기
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
