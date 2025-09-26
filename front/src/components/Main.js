@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../css/Main.css";
+import Papa from "papaparse";
 
 import DestinationPanel from "./panels/DestinationPanel";
 import DrivePanel from "./panels/DrivePanel";
@@ -16,12 +17,35 @@ export default function Main() {
         lng: 126.9779451,
     }); // 서울시청
     const [go, setGO] = useState(false);
-    const [parkingList, setParkingList] = useState([]); // 최종 mergedParkingList 저
-    // 장
-
+    const [parkingList, setParkingList] = useState([]); // 최종 mergedParkingList 저장
     const [showModal, setShowModal] = useState(false);
-    const [modalData, setModalData] = useState(null);
-
+    const [csvDataByName, setCsvDataByName] = useState({});
+    const [modalParkName, setModalParkName] = useState(null);
+    const [routeInfo,setRouteInfo] = useState({})
+    //tmap 관련
+    
+    // CSV 전체 파싱 (주차장별 데이터 구조화)
+    useEffect(() => {
+        Papa.parse("/20250922.csv", {
+            download: true,
+            header: true,
+            complete: (result) => {
+                const grouped = {};
+                result.data.forEach((row) => {
+                    const name = row.PKLT_NM;
+                    if (!name) return;
+                    if (!grouped[name]) grouped[name] = [];
+                    grouped[name].push({
+                        time: row.timestamp ? row.timestamp.split(" ")[1].slice(0, 5) : "",
+                        liveCnt: Number(row.liveCnt) || 0,
+                        remainCnt: Number(row.remainCnt) || 0,
+                    });
+                });
+                setCsvDataByName(grouped);
+            },
+            error: (err) => console.error("CSV 파싱 에러:", err),
+        });
+    }, []);
     // 카카오 지도 초기화
     useEffect(() => {
         window.kakao.maps.load(() => {
@@ -57,6 +81,86 @@ export default function Main() {
             });
         });
     }, []);
+    useEffect(() => {
+        if (!map || !routeInfo.destination || !parkingList.length) return;
+
+        const updateRoute = async () => {
+            const startX = coordinates.lng;
+            const startY = coordinates.lat;
+
+            const endPark = parkingList.find(p => p.PKLT_NM === routeInfo.destination);
+            if (!endPark) return;
+
+            const endX = parseFloat(endPark.LOT);
+            const endY = parseFloat(endPark.LAT);
+
+            try {
+                const res = await fetch("https://apis.openapi.sk.com/tmap/routes?version=1", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "appKey": "KTv2MthCTDaTxnVQ8hfUJ7mSHSdxii7j60hw5tPU"
+                    },
+                    body: JSON.stringify({
+                        startX, startY, endX, endY,
+                        reqCoordType: "WGS84GEO",
+                        resCoordType: "WGS84GEO"
+                    })
+                });
+
+                const data = await res.json();
+                if (!data.features || !data.features.length) return;
+
+                let pathPoints = [];
+                let totalTime = "-";
+                let totalDistance = "-";
+
+                data.features.forEach((feature) => {
+                    const props = feature.properties;
+                    if (props.totalTime) {
+                        totalTime = props.totalTime;
+                        totalDistance = props.totalDistance;
+                    }
+
+                    if (feature.geometry?.type === "LineString") {
+                        feature.geometry.coordinates.forEach(([lon, lat]) => {
+                            pathPoints.push(new window.kakao.maps.LatLng(lat, lon));
+                        });
+                    }
+                });
+
+                // 기존 폴리라인 제거
+                if (window.currentRouteLine) window.currentRouteLine.setMap(null);
+
+                const polyline = new window.kakao.maps.Polyline({
+                    path: pathPoints,
+                    strokeWeight: 5,
+                    strokeColor: "#3897f0",
+                    strokeOpacity: 1,
+                    strokeStyle: "solid"
+                });
+
+                polyline.setMap(map);
+                window.currentRouteLine = polyline;
+
+                // routeInfo 업데이트 (coordinates 변경시에도 갱신)
+                const timeMin = totalTime !== "-" ? Math.round(totalTime / 60) : "-";
+                const distKm = totalDistance !== "-" ? (totalDistance / 1000).toFixed(2) : "-";
+
+                setRouteInfo(prev => ({
+                    ...prev,
+                    distance: distKm,
+                    time: timeMin
+                }));
+
+            } catch (err) {
+                console.error("경로 업데이트 실패:", err);
+            }
+        };
+
+        updateRoute();
+    }, [coordinates, routeInfo.destination, map, parkingList]);
+
 
     useEffect(() => {
         if (!map) return;
@@ -156,9 +260,7 @@ export default function Main() {
                             </div>
                             <div class="ep-overlay__actions">
                                 <button class="ep-overlay__btn" id="detail-zone">상세분석</button>&nbsp
-                                <a target="_blank"
-                                    href="https://map.kakao.com/link/to/${encodeURIComponent(park.PKLT_NM)},${park.LAT},${park.LOT}"
-                                    class="ep-overlay__btn">길찾기</a>
+                               <a href="#" class="ep-overlay__btn" id="route-search">경로탐색</a>
                             </div>
                         </div>`;
                         };
@@ -260,10 +362,11 @@ export default function Main() {
                     if (detailBtn) {
                         detailBtn.addEventListener("click", e => {
                             e.stopPropagation();
-                            setModalData(park);   // 현재 주차장 정보 저장
-                            setShowModal(true);   // 모달 띄우기
+                            setModalParkName(park.PKLT_NM); // 주차장 이름만 저장
+                            setShowModal(true);
                         });
                     }
+
 
                     overlay.setContent(el);
                     overlay.setPosition(position);
@@ -272,10 +375,96 @@ export default function Main() {
                     if (openedMarker) openedMarker.setZIndex(5);
                     openedMarker = marker;
                     marker.setZIndex(1);
+
+                    // 경로탐색
+                    const routeBtn = el.querySelector("#route-search");
+                    if (routeBtn) {
+                        routeBtn.addEventListener("click", async (e) => {
+                            e.stopPropagation();
+
+                            const center = map.getCenter();
+                            const startX = center.getLng();
+                            const startY = center.getLat();
+                            const endX = parseFloat(park.LOT);
+                            const endY = parseFloat(park.LAT);
+
+                            try {
+                                const res = await fetch("https://apis.openapi.sk.com/tmap/routes?version=1", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "appKey": "KTv2MthCTDaTxnVQ8hfUJ7mSHSdxii7j60hw5tPU"  // ⚠️ 공개키라 클라에서 바로 노출됨
+                                    },
+                                    body: JSON.stringify({
+                                        startX,
+                                        startY,
+                                        endX,
+                                        endY,
+                                        reqCoordType: "WGS84GEO",
+                                        resCoordType: "WGS84GEO"
+                                    })
+                                });
+
+                                const data = await res.json();
+
+                                if (!data.features || !data.features.length) return;
+
+                                // 총 거리/시간 추출
+                                let totalTime = "-";
+                                let totalDistance = "-";
+                                let pathPoints = [];
+
+                                data.features.forEach((feature) => {
+                                    const props = feature.properties;
+                                    if (props.totalTime) {
+                                        totalTime = props.totalTime;
+                                        totalDistance = props.totalDistance;
+                                    }
+
+                                    if (feature.geometry && feature.geometry.type === "LineString") {
+                                        feature.geometry.coordinates.forEach((coord) => {
+                                            const [lon, lat] = coord;
+                                            pathPoints.push(new window.kakao.maps.LatLng(lat, lon));
+                                        });
+                                    }
+                                });
+
+                                // 기존 경로 제거
+                                if (window.currentRouteLine) window.currentRouteLine.setMap(null);
+
+                                // Polyline 생성
+                                const polyline = new window.kakao.maps.Polyline({
+                                    path: pathPoints,
+                                    strokeWeight: 5,
+                                    strokeColor: "#3897f0",
+                                    strokeOpacity: 1,
+                                    strokeStyle: "solid"
+                                });
+                                polyline.setMap(map);
+                                window.currentRouteLine = polyline;
+
+                                // 오버레이 제거
+                                if (window.routeInfoOverlay) window.routeInfoOverlay.setMap(null);
+
+                                // 시간/거리 표시
+                                const timeMin = totalTime !== "-" ? Math.round(totalTime / 60) : "-";
+                                const distKm = totalDistance !== "-" ? (totalDistance / 1000).toFixed(2) : "-";
+
+                                setRouteInfo({ distance: distKm, time: timeMin, destination: park.PKLT_NM });
+
+                                const overlayContent = document.createElement("div");
+                                overlayContent.style.background = "rgba(255,255,255,0.9)";
+                                overlayContent.style.padding = "5px 10px";
+                                overlayContent.style.borderRadius = "5px";
+                                overlayContent.style.fontSize = "12px";
+                                overlayContent.style.fontWeight = "bold";
+                                overlayContent.innerHTML = `거리: ${distKm} km<br/>예상 시간: ${timeMin} 분`;
+                            } catch (err) {
+                                console.error("경로 가져오기 실패:", err);
+                            }
+                        });
+                    }
                 };
-
-
-
                 const markers = mergedParkingList
                     .map((park) => {
                         const lat = parseFloat(park.LAT);
@@ -355,6 +544,11 @@ export default function Main() {
                             map={map}
                             coordinates={coordinates}
                             ParkingList={parkingList}
+                            routeInfo={routeInfo}
+                            setRouteInfo={setRouteInfo}
+                            go={go}             // 안심주행 상태
+                            setGO={setGO}
+                            setMode={setMode}// 상태 변경 함수
                         />
                     )}
                     {mode === "drive" && (
@@ -364,6 +558,8 @@ export default function Main() {
                             setGO={setGO}
                             coordinates={coordinates}
                             ParkingList={parkingList}
+                            routeInfo={routeInfo}
+                            setRouteInfo={setRouteInfo}
                         />
                     )}
                     {mode === "favorites" && <FavoritesPanel />}
@@ -383,6 +579,9 @@ export default function Main() {
                     <Link className="link-btn" to="/mobile">
                         모바일 버전
                     </Link>
+                    <Link className="link-btn" to="/tmap">
+                        티맵
+                    </Link>
                 </div>
                 <div
                     id="map"
@@ -390,17 +589,23 @@ export default function Main() {
                     style={{ width: "100%", height: "100%" }}
                 />
             </main>
-            {showModal && modalData && (
-                <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>{modalData.PKLT_NM}</h2>
-                        <ParkingChart />   {/* 차트 컴포넌트 추가 */}
-                        <button onClick={() => setShowModal(false)} className="modal-close">
-                            닫기
-                        </button>
+            <div>
+                {/* ... 지도/패널 부분 ... */}
+                {showModal && modalParkName && (
+                    <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <h2>{modalParkName}</h2>
+                            <ParkingChart
+                                parkName={modalParkName}
+                                csvDataByName={csvDataByName}
+                            />
+                            <button onClick={() => setShowModal(false)} className="modal-close">
+                                닫기
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }
