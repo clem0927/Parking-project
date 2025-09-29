@@ -2,9 +2,8 @@ name: Fetch Parking Data
 
 on:
   schedule:
-    # UTC 기준, 한국 시간 12시~24시 = 03:00~15:50 UTC
     - cron: "0,10,20,30,40,50 3-14 * * *"
-  workflow_dispatch:   # 수동 실행
+  workflow_dispatch:
 
 jobs:
   fetch:
@@ -23,12 +22,12 @@ jobs:
         run: pip install requests pandas
 
       - name: Run data fetch
-        run: python fetch_parking.py
+        run: python python/fetch_parking.py
 
       - name: Commit & push CSV
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add parking_data/*.csv
-          git commit -m "Update parking data"
-          git push || echo "No changes to commit"
+          git add python/parking_data/*.csv
+          git commit -m "Update parking data" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
