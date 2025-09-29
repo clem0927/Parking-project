@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 SAVE_DIR = Path("parking_data")
@@ -14,9 +14,11 @@ def fetch_and_save():
 
         realtime_list = data.get("GetParkingInfo", {}).get("row", [])
 
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        records = []
+        # ✅ UTC → KST(+9) 변환
+        kst_now = datetime.utcnow() + timedelta(hours=9)
+        timestamp = kst_now.strftime("%Y-%m-%d %H:%M:%S")
 
+        records = []
         for park in realtime_list:
             now_cnt = int(park.get("NOW_PRK_VHCL_CNT", 0))
             total_cnt = int(park.get("TPKCT", 0))
@@ -30,7 +32,7 @@ def fetch_and_save():
                 "remainCnt": remain_cnt
             })
 
-        today = datetime.now().strftime("%Y%m%d")
+        today = kst_now.strftime("%Y%m%d")
         csv_file = SAVE_DIR / f"{today}.csv"
         df = pd.DataFrame(records)
 
