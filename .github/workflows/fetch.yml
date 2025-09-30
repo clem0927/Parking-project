@@ -2,7 +2,10 @@ name: Fetch Parking Data
 
 on:
   schedule:
-    - cron: "0,10,20,30,40,50 3-14 * * *"
+    # 한국 06~08시 (UTC 21~23시 전날)
+    - cron: "0,10,20,30,40,50 21-23 * * *"
+    # 한국 09~24시 (UTC 0~15시 당일)
+    - cron: "0,10,20,30,40,50 0-15 * * *"
   workflow_dispatch:
 
 jobs:
@@ -12,9 +15,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
