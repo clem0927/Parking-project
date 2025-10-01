@@ -1,5 +1,4 @@
 // Main.js
-
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../css/Main.css";
@@ -942,7 +941,6 @@ const onRerouteClick = async () => {
           <Link className="link-btn" to="/admin">관리자</Link>
           <Link className="link-btn" to="/login">로그인</Link>
           <Link className="link-btn" to="/mobile">모바일 버전</Link>
-          <Link className="link-btn" to="/tmap">티맵</Link>
         </div>
 
         <div
@@ -1079,7 +1077,6 @@ const onRerouteClick = async () => {
             </div>
           </div>
       )}
-
     </div>
   );
 }
