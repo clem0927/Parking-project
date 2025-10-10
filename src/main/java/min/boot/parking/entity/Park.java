@@ -1,23 +1,28 @@
 package min.boot.parking.entity;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
+@Entity
+@Table(name = "PARK")
 @Getter
 @Setter
-@Entity
-public class Park {
+public class Park{
     @Id
-    private String prk_center_id;
-    private Integer prk_cmprt_co;
-    private String prk_plce_nm;
-    private String prk_plce_adres;
-    private String prk_plce_adres_sido;
-    private String prk_plce_adres_sigungu;
-    private Double prk_plce_entrc_la;
-    private Double prk_plce_entrc_lo;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "parking_seq")
+    @SequenceGenerator(name = "parking_seq", sequenceName = "VISIBLE_PARKING_SEQ", allocationSize = 1)
+    private Long id;
+
+    private String PKLT_CD;
+    private String PKLT_NM;
+    private int PRK_CRG;
+    private int TPKCT;
+    private int liveCnt;
+    private int remainCnt;
+    private String WD_OPER_BGNG_TM;
+    private String WD_OPER_END_TM;
+    private String WE_OPER_BGNG_TM;
+    private String WE_OPER_END_TM;
+
+    // Getter/Setter 생략
 }
