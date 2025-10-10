@@ -308,7 +308,7 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList, r
                     onClick={() => setShowModal(false)} // 배경 클릭 시 닫힘
                 >
                     <div
-                        className="modal3"
+                        className="modal3 modal3--compact" 
                         onClick={(e) => e.stopPropagation()} // 박스 클릭 시 닫히지 않게
                     >
                         <h3>경로 안내</h3>

@@ -1,4 +1,4 @@
 package min.boot.parking.controller;
 
-public class ReactController {
+public class UserController {
 }
