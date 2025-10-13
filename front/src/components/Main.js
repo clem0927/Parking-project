@@ -19,6 +19,27 @@ function calcETA(min) {
   const mm = String(d.getMinutes()).padStart(2,"0");
   return `${hh}:${mm}`;
 }
+
+// (예약) 5분 단가 기반 가격 계산
+function calcTicketPrice(park, minutes, key) {
+  if (key === "DAY") {
+    return park?.DAY_PRICE ?? 30000; // 예: 정액 3만원, 필요시 필드/값 조정
+  }
+  const unit = Number(park?.PRK_CRG); // 5분당 요금
+  if (!unit || Number.isNaN(unit)) return null;
+  return unit * Math.ceil(minutes / 5);
+}
+
+// (예약) 권종 정의
+const TICKETS = [
+  { key: "60",  label: "1시간권", minutes: 60 },
+  { key: "120", label: "2시간권", minutes: 120 },
+  { key: "180", label: "3시간권", minutes: 180 },
+  { key: "360", label: "6시간권",  minutes: 360 },
+  { key: "480", label: "8시간권",  minutes: 480 },
+  { key: "DAY", label: "당일권", minutes: 720 }, // 필요시 변경
+];
+
 // 경로 라인 제거
 function clearRouteLine() {
   if (window.currentRouteLine) {
@@ -90,7 +111,11 @@ export default function Main() {
   const [csvDataByName, setCsvDataByName] = useState({});
   const [modalParkName, setModalParkName] = useState(null);
   const [routeInfo, setRouteInfo] = useState({});
+  const [reserveMode, setReserveMode] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [agree, setAgree] = useState(false);
   const [user, setUser] = useState(null);
+  const [startTime,setStartTime] = useState(null);
   const { visibleOnly, setVisibleOnly } = useContext(ParkingContext);
   // 도착지명/ETA/예상 여석(가능하면)
   const destName = routeInfo?.destination || null;
@@ -152,7 +177,7 @@ export default function Main() {
   }, [destName, parkingList]);
 
   // 버튼 동작
-  const onReserve = () => alert("예약 기능은 준비 중입니다.");
+  const onReserve = () => { setReserveMode(true); };
   const onStartGuide = () => { setGO(true); setMode("drive"); };
   const onClose = () => { setRouteInfo({}); setGO(false); clearRouteLine(); };
   const onEditRoute = () => {
@@ -832,7 +857,7 @@ export default function Main() {
                   className={`tab ${mode === "favorites" ? "active" : ""}`}
                   onClick={() => setMode("favorites")}
               >
-                즐겨찾기
+                예약 내역
               </button>
             </div>
           </div>
@@ -900,23 +925,109 @@ export default function Main() {
               const fillPct = Math.round((remaining / totalSpots) * 100);
 
               return (
-                  <div className="route-card mt-12">
-                    <div className="route-title-row">
-                      <div className="route-title">{routeInfo.destination}</div>
-                      <button className="btn-edit" onClick={onEditRoute} aria-label="경로 수정">
-                        <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 20h9"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-                        </svg>
+              <div className="route-card mt-12">
+                <div className="route-title-row">
+                  <div className="route-title">{routeInfo.destination}</div>
+                  <button className="btn-edit" onClick={onEditRoute} aria-label="경로 수정">
+                    <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 20h9"/>
+                      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="ep-drive-badges">
+                  <span className={`badge ${chargeClass}`}>{park.CHGD_FREE_NM ?? "-"}</span>
+                  <span className={`badge ${status.variant}`}>{status.label}</span>
+                  {park.PKLT_KND_NM && <span className="badge outline">{park.PKLT_KND_NM}</span>}
+                </div>
+
+                {reserveMode ? (
+                  <>
+                    <div className="ep-drive-stats">
+                      <div className="ep-stat"><span>거리</span><b>{distanceStr} km</b></div>
+                      <div className="ep-stat"><span>도착시간</span><b>{eta}</b></div>
+                      <div className="ep-stat"><span>현재 여석</span><b>{expectedRemain}</b></div>
+                    </div>
+                    <hr/>
+
+                    {/* 권종 선택 */}
+                    <div className="section-title" style={{marginTop:8}}>권종 선택</div>
+                    <div className="ticket-grid">
+                      {TICKETS.map(t => {
+                        const price = calcTicketPrice(park, t.minutes, t.key);
+                        const active = selectedTicket?.key === t.key;
+                        return (
+                          <button
+                            key={t.key}
+                            className={`ticket ${active ? "active" : ""}`}
+                            onClick={() => setSelectedTicket({ ...t, price })}
+                          >
+                            <div className="ticket-label">{t.label}</div>
+                            <div className="ticket-price">
+                              {price == null ? "무료" : `${price.toLocaleString()}원`}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 요약/동의 */}
+                    <div className="reserve-summary">
+                      <div><span>시작</span><input type="time" value={startTime}
+                                                 onChange={e => setStartTime(e.target.value)}/></div>
+                      <div><span>시간</span><b>{selectedTicket ? selectedTicket.label : "-"}</b></div>
+                      <div><span>결제금액</span>
+                        <b>{selectedTicket?.price == null ? "-" : `${selectedTicket.price.toLocaleString()}원`}</b>
+                      </div>
+                    </div>
+                    <label className="agree-row">
+                      <input type="checkbox" checked={agree} onChange={e=>setAgree(e.target.checked)} />
+                      <span>이용 안내 및 환불정책에 동의합니다</span>
+                    </label>
+
+                    <div className="route-actions">
+                      <button
+                        className="btn btn-start"
+                        disabled={!selectedTicket || !agree}
+                        onClick={async ()=>{
+                          try {
+                            await fetch("/api/reservations", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                parkCode:park.PKLT_CD,
+                                parkName: routeInfo.destination,
+                                ticket: selectedTicket.key,
+                                minutes: selectedTicket.minutes,
+                                price: selectedTicket.price ?? null,
+                                eta,
+                                startTime
+                              }),
+                            });
+                            alert("예약이 완료되었습니다.");
+                            setReserveMode(false);
+                            setSelectedTicket(null);
+                            setAgree(false);
+                            setStartTime("");
+                          } catch (e) {
+                            console.error(e);
+                            alert("예약 처리에 실패했습니다.");
+                          }
+                        }}
+                      >
+                        예약 확정
+                      </button>
+                      <button
+                        className="btn btn-close"
+                        onClick={() => { setReserveMode(false); setSelectedTicket(null); setAgree(false); }}
+                      >
+                        취소
                       </button>
                     </div>
-
-                    <div className="ep-drive-badges">
-                      <span className={`badge ${chargeClass}`}>{park.CHGD_FREE_NM ?? "-"}</span>
-                      <span className={`badge ${status.variant}`}>{status.label}</span>
-                      {park.PKLT_KND_NM && <span className="badge outline">{park.PKLT_KND_NM}</span>}
-                    </div>
-
+                  </>
+                ) : (
+                  <>
                     <div className="ep-drive-stats">
                       <div className="ep-stat"><span>거리</span><b>{distanceStr} km</b></div>
                       <div className="ep-stat"><span>소요시간</span><b>{timeMin} 분</b></div>
@@ -925,7 +1036,7 @@ export default function Main() {
                     <hr/>
 
                     <div style={{display:"flex"}}>
-                      <div className="ep-stat" ><b><span style={{fontSize:"14px",color:"black"}}><div>현재</div><div>{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}</div></span></b></div>
+                      <div className="ep-stat"><b><span style={{fontSize:"14px",color:"black"}}><div>현재</div><div>{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}</div></span></b></div>
                       <div className="ep-stat"><span>총자리</span><b>{park.TPKCT ?? "-"}</b></div>
                       <div className="ep-stat"><span>주차된 차량</span><b>{park.liveCnt ?? "-"}</b></div>
                       <div className="ep-stat"><span>현재 여석</span><b>{expectedRemain}</b></div>
@@ -954,22 +1065,25 @@ export default function Main() {
                       <div className="fill" style={{ width: `${fillPct}%`, backgroundColor: "red" }} />
                       <div className="cap">{fillPct}%</div>
                     </div>
+
                     <div className="route-actions">
-                      <button className="btn btn-reserve" onClick={()=>alert("예약 준비중")}>예약하기</button>
+                      <button className="btn btn-reserve" onClick={onReserve}>예약하기</button>
                       <button className="btn btn-start" onClick={()=>{ setGO(true); setMode("drive"); }}>안내 시작</button>
                       <button className="btn btn-close" onClick={()=>{
                         setRouteInfo({}); setGO(false);
                         if (window.currentRouteLine){ window.currentRouteLine.setMap(null); window.currentRouteLine=null; }
                       }}>닫기</button>
                     </div>
-                  </div>
-              );
+                  </>
+                )}
+              </div>
+            );
+
             })()}
-          </div>
+            </div>
 
-
-          <div className="footer">@Eazypark</div>
-        </aside>
+            <div className="footer">@Eazypark</div>
+            </aside>
 
         <main className="map-area">
           <div className="header-links">
