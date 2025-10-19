@@ -28,6 +28,10 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList, r
     // ✅ 경로탐색 함수 (기존 코드 그대로 옮김)
     const handleRouteSearch = async (park) => {
         if (!map) return;
+        if (window.__routeLocked && window.currentRouteLine) {
+        setRouteInfo(prev => ({ ...prev, destination: park.PKLT_NM })); // 정보만 변경
+        return; // 라인은 그대로
+    }
         const parkLat = parseFloat(park.LAT);
         const parkLng = parseFloat(park.LOT);
 
@@ -87,7 +91,7 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList, r
 
             const timeMin = totalTime !== "-" ? Math.round(totalTime / 60) : "-";
             const distKm = totalDistance !== "-" ? (totalDistance / 1000).toFixed(2) : "-";
-            setRouteInfo({ distance: distKm, time: timeMin, destination: park.PKLT_NM });
+            setRouteInfo({ distance: distKm, time: timeMin, destination: park.PKLT_NM,bool:false });
         } catch (err) {
             console.error("경로 탐색 실패:", err);
         }
@@ -106,6 +110,8 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList, r
     // 주행모드 on/off
     const handleSafeDriveClick = () => {
         setGO(prev => !prev);
+        const position = new window.kakao.maps.LatLng(coordinates.lat,coordinates.lng);
+        map.setCenter(position);
         // 주행모드 시작 시 현재 목적지 저장
         if (!go && routeInfo?.destination) {
             setOriginalDestination(routeInfo.destination);
@@ -115,6 +121,10 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList, r
     // 원래 목적지로 돌아가기
     const handleReturnToOriginal = async () => {
         if (!map || !originalDestination) return;
+        if (window.__routeLocked && window.currentRouteLine) {
+            setRouteInfo(prev => ({ ...prev, destination: originalDestination })); // 정보만 변경
+            return; // 라인 그대로
+        }
         const destPark = ParkingList.find(p => p.PKLT_NM === originalDestination);
         if (!destPark) return;
 
@@ -323,7 +333,7 @@ export default function DrivePanel({ map, go, setGO, coordinates, ParkingList, r
                                     setShowModal(false);
                                 }}
                             >
-                                예
+
                             </button>
                             <button
                                 className="no-btn"
