@@ -1,6 +1,6 @@
-// src/components/RouteCard.js
+// RouteCard.js
 import React from "react";
-
+import {useState,useEffect} from "react";
 export default function RouteCard({
                                       map,
                                       coordinates,
@@ -25,7 +25,8 @@ export default function RouteCard({
                                       TICKETS,
                                       HOURS_24,
                                       pad2,
-                                      calcTicketPrice
+                                      calcTicketPrice,
+                                      predictedRemain
                                   }) {
     if (mode !== "destination" || !routeInfo?.destination) return null;
 
@@ -54,7 +55,7 @@ export default function RouteCard({
     const fmtHM = s => s && s.length === 4 ? `${s.slice(0,2)}:${s.slice(2)}` : s || "-";
     //발표때 한번만
     const totalSpots = 1317;
-    const parkedCars = 480;
+    const parkedCars = 1280;
     const remaining = totalSpots - parkedCars;
     const fillPct = Math.round((remaining / totalSpots) * 100);
 
@@ -249,9 +250,9 @@ export default function RouteCard({
 
                         {/* 3개 카드: 정가운데 정렬 */}
                         <div className="stats-row arrival-row">
-                            <div className="ep-stat2"><span>총자리</span><b>{arrivalTotal}</b></div>
-                            <div className="ep-stat2"><span>주차된 차량</span><b>{arrivalParked}</b></div>
-                            <div className="ep-stat2"><span>도착시 여석</span><b>{arrivalRemain}</b></div>
+                            <div className="ep-stat2"><span>총자리</span><b>{park.TPKCT ?? "-"}</b></div>
+                            <div className="ep-stat2"><span>주차된 차량</span><b>{park.TPKCT - (predictedRemain != null ? Math.round(predictedRemain) : 0)}</b></div>
+                            <div className="ep-stat2"><span>도착시 여석</span><b>{predictedRemain != null ? Math.round(predictedRemain) : "-"}</b></div>
                         </div>
 
                         {/* 도착시 혼잡도 게이지 (항상 노출) */}
@@ -289,9 +290,14 @@ export default function RouteCard({
                             const position = new window.kakao.maps.LatLng(coordinates.lat,coordinates.lng);
                             map.setCenter(position); }}>안내 시작</button>
                         <button className="btn btn-close" onClick={()=>{
-                            setRouteInfo({}); setGO(false);
-                            if (window.currentRouteLine){ window.currentRouteLine.setMap(null); window.currentRouteLine=null; }
-                        }}>닫기</button>
+                            setRouteInfo({});
+                            setGO(false);
+                            if (window.currentRouteLine){
+                                window.currentRouteLine.setMap(null);
+                                window.currentRouteLine = null;
+                            }
+                            window.__routeLocked = false; // 잠금 해제
+                            }}>닫기</button>
                     </div>
                 </>
             )}

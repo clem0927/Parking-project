@@ -1,3 +1,5 @@
+// DestinationPanel.js
+
 import React, { useState } from "react";
 
 export default function DestinationPanel({ map, coordinates, setGO, setMode,routeInfo,setRouteInfo }) {
@@ -91,6 +93,9 @@ export default function DestinationPanel({ map, coordinates, setGO, setMode,rout
         polyline.setMap(map);
         window.currentRouteLine = polyline;
 
+        // 라인 그리는 순간 고정
+        window.__routeLocked = true;
+
         const timeMin = totalTime !== "-" ? Math.round(totalTime / 60) : "-";
         const distKm = totalDistance !== "-" ? (totalDistance / 1000).toFixed(2) : "-";
 
@@ -108,6 +113,8 @@ export default function DestinationPanel({ map, coordinates, setGO, setMode,rout
             distanceStr: distKm,
             timeMin,
             eta,
+            destLat: endCoord.lat,
+            destLng: endCoord.lon,
         });
 
         // 지도 중심 이동
@@ -173,10 +180,16 @@ export default function DestinationPanel({ map, coordinates, setGO, setMode,rout
                             onClick={() => {
                                 setGO(true);
                                 setMode("drive");
-                                routeInfo.destination = selectedRoute.poi.name;
-                                setRouteInfo({ ...routeInfo });
-                            }}
-                        >
+                                setRouteInfo({
+                                    destination: selectedRoute.poi.name,
+                                    time: selectedRoute.timeMin,
+                                    distance: selectedRoute.distanceStr,
+                                    isParking: false,               // 비주차장 플래그
+                                    destLat: selectedRoute.destLat, // 목적지 위도
+                                    destLng: selectedRoute.destLng, // 목적지 경도
+                                    });
+                                }}
+                                >
                             안내 시작
                         </button>
                         <button
@@ -188,6 +201,7 @@ export default function DestinationPanel({ map, coordinates, setGO, setMode,rout
                                     window.currentRouteLine = null;
                                 }
                                 setSelectedRoute(null);
+                                window.__routeLocked = false; // 잠금 해제
                             }}
                         >
                             닫기

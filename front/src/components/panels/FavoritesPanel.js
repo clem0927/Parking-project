@@ -7,14 +7,15 @@ const calculateDistance = (lat1, lng1, lat2, lng2) => {
     return Math.sqrt((lat1 - lat2) ** 2 + (lng1 - lng2) ** 2);
 };
 
-export default function FavoritesPanel({ map,ParkingList,onRerouteClick,doRoute,routeInfo,setRouteInfo }) {
+export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRoute, routeInfo, setRouteInfo }) {
     const [loading, setLoading] = useState(true);
     const [me, setMe] = useState(null);
     const [list, setList] = useState([]);
     const [nearbyList, setNearbyList] = useState(null); // 주변 주차장 리스트
+    const [nearbyOverlays, setNearbyOverlays] = useState([]); // 생성된 오버레이 목록
     const [cancellingId, setCancellingId] = useState(null);
     const [currentTime, setCurrentTime] = useState(new Date());
-    const { visibleOnly} = useContext(ParkingContext);
+    const { visibleOnly } = useContext(ParkingContext);
 
     const formatTime = (date) => {
         const hours = date.getHours().toString().padStart(2, "0");
@@ -128,7 +129,11 @@ export default function FavoritesPanel({ map,ParkingList,onRerouteClick,doRoute,
     };
 
     const handleRecommendNearby = (r) => {
-        if (!ParkingList || ParkingList.length === 0) return;
+        if (!ParkingList || ParkingList.length === 0 || !map) return;
+
+        // 기존 오버레이 제거
+        nearbyOverlays.forEach((ov) => ov.setMap(null));
+        setNearbyOverlays([]);
 
         const parkInfo = ParkingList.find(p => String(p.PKLT_NM) === String(r.parkName));
         if (!parkInfo) return;
@@ -136,23 +141,63 @@ export default function FavoritesPanel({ map,ParkingList,onRerouteClick,doRoute,
         const lat = parseFloat(parkInfo.LAT);
         const lng = parseFloat(parkInfo.LOT);
 
-        // 지도 중심 이동
-        if (map) map.setCenter(new window.kakao.maps.LatLng(lat, lng));
+        map.setCenter(new window.kakao.maps.LatLng(lat, lng));
 
-        // 주변 주차장 5개 계산 (본인이 예약한 곳 제외)
+        // 주변 주차장 5개 계산
         const nearby = ParkingList
-            .filter(p => String(p.PKLT_NM) !== String(r.parkName)) // 예약한 곳 제외
+            .filter(p => String(p.PKLT_NM) !== String(r.parkName))
             .map(p => ({
                 ...p,
                 distance: calculateDistance(lat, lng, parseFloat(p.LAT), parseFloat(p.LOT)),
             }))
             .sort((a, b) => a.distance - b.distance)
-            .slice(0, 5); // 5개만 선택
+            .slice(0, 5);
 
+        const overlays = [];
+
+        // ✅ 1️⃣ 내가 예약한 주차장 오버레이 추가
+        const myPos = new window.kakao.maps.LatLng(lat, lng);
+        const myOverlayContent = `
+        <div class="recommend-overlay main-overlay">
+            📍 예약 주차장
+        </div>
+    `;
+        const myOverlay = new window.kakao.maps.CustomOverlay({
+            position: myPos,
+            content: myOverlayContent,
+            yAnchor: 2.0, // 더 위로 올리고 싶다면 값 키우기
+            zIndex:9999
+        });
+        myOverlay.setMap(map);
+        overlays.push(myOverlay);
+
+        // ✅ 2️⃣ 주변 추천 주차장 오버레이 추가
+        nearby.forEach((p, idx) => {
+            const position = new window.kakao.maps.LatLng(parseFloat(p.LAT), parseFloat(p.LOT));
+            const content = `
+            <div class="recommend-overlay">
+                추천 ${idx + 1}
+            </div>
+        `;
+            const overlay = new window.kakao.maps.CustomOverlay({
+                position,
+                content,
+                yAnchor: 1.8,
+            });
+            overlay.setMap(map);
+            overlays.push(overlay);
+        });
+
+        setNearbyOverlays(overlays);
         setNearbyList(nearby);
     };
 
+
     const handleCloseNearby = () => {
+        setNearbyOverlays(prev => {
+            prev.forEach((ov) => ov.setMap(null));
+            return [];
+        });
         setNearbyList(null);
     };
 
@@ -201,7 +246,6 @@ export default function FavoritesPanel({ map,ParkingList,onRerouteClick,doRoute,
                 {formatTime(currentTime)}
             </p>
 
-            {/* 주변 주차장 리스트 */}
             {nearbyList ? (
                 <div className="nearby-list">
                     <button className="btn-close-nearby" onClick={handleCloseNearby}>닫기</button>
@@ -280,13 +324,10 @@ export default function FavoritesPanel({ map,ParkingList,onRerouteClick,doRoute,
                                         <div className="res-value">{remainCnt}</div>
                                     </div>
 
-                                    {/* 남은 좌석 20% 미만 시만 버튼 렌더링 */}
                                     {remainRatio < 0.2 && (
                                         <button
                                             className="btn-blue btn-cancel--sm"
-                                            onClick={() => {
-                                                handleRecommendNearby(r)
-                                            }}
+                                            onClick={() => handleRecommendNearby(r)}
                                         >
                                             주변 주차장 추천
                                         </button>
