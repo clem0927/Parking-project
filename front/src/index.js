@@ -16,12 +16,14 @@ import {ParkingProvider} from "./context/ParkingContext";
 import {MarkerProvider} from "./context/MarkerContext";
 import {RouteProvider} from "./context/RouteContext";
 import {CalculationProvider} from "./context/CalculationContext";
+import {MarkerProvider2} from "./context/MarkerContext2";
 
 
 // 라우팅 컴포넌트
 const App = () => (
     <ParkingProvider>
     <MarkerProvider>
+    <MarkerProvider2>
     <RouteProvider>
     <CalculationProvider>
         <BrowserRouter>
@@ -41,6 +43,7 @@ const App = () => (
         </BrowserRouter>
     </CalculationProvider>
     </RouteProvider>
+    </MarkerProvider2>
     </MarkerProvider>
     </ParkingProvider>
 );

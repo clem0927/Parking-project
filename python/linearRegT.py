@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 # ===============================
 # 설정
 # ===============================
-target_cd = 171730
+target_cd = 171721
 predict_minutes_list = [5, 15, 20, 30, 120]  # 예측 단위
 file_pattern = "../parking_data/202510*.csv"
 use_polynomial = True  # True면 다항 회귀, False면 단순 선형 회귀

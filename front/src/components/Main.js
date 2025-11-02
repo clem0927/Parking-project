@@ -64,7 +64,7 @@ export default function Main() {
     const minutesAhead = routeInfo.time ?? routeInfo.timeMin;
     if (minutesAhead == null) return;
 
-    fetch("http://localhost:5000/ml/predict_remain", {
+    fetch("/ml/predict_remain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -525,7 +525,7 @@ export default function Main() {
   useEffect(() => {
     const fetchLastWeekData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/ml/parking_data"); // 서버 주소 포함
+        const res = await fetch("/ml/parking_data"); // 서버 주소 포함
         if (!res.ok) throw new Error("데이터 요청 실패");
         const data = await res.json();
 
