@@ -9,7 +9,6 @@ import Main from "./components/Main";
 import MainMobile from "./components/MainMobile";
 import Dashboard from "./components/admins/Dashboard";
 import ParkingManage from "./components/admins/ParkingManage";
-import ReservationManage from "./components/admins/ReservationManage";
 import ParkingSearch from "./components/admins/ParkingSearch";
 import { Navigate } from "react-router-dom";
 import {ParkingProvider} from "./context/ParkingContext";
@@ -34,7 +33,6 @@ const App = () => (
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="parkingSearch" element={<ParkingSearch />} />
                 <Route path="parking" element={<ParkingManage />} />
-                <Route path="reservation" element={<ReservationManage />} />
             </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/owner" element={<Owner />} />

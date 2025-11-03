@@ -43,7 +43,7 @@ export default function Main() {
   const [showArriveModal, setShowArriveModal] = useState(false);
   const [predictedRemain, setPredictedRemain] = useState(null);
   //컨텍스트 사용
-  const {visibleOnly, setVisibleOnly} = useContext(ParkingContext);
+  const {visibleOnly,setVisibleOnly,nearbyList,setNearbyList,nearbyOverlays,setNearbyOverlays} = useContext(ParkingContext);
   const {buildMarkerImage,buildOverlayHTML}=useContext(MarkerContext);
   const {calcDistanceMeters,clearRoutePath,drawRoutePath,clearRouteLine,TurnBanner,TURN_MAP,formatMeters,extractManeuvers}=useContext(RouteContext);
   const {pad2,toDateFromHHMM,addMinutesHHMM,roundToNextHourHH,HOURS_24,calcTicketPrice,TICKETS}=useContext(CalculationContext);
@@ -51,6 +51,16 @@ export default function Main() {
   // 도착지명/ETA/예상 여석(가능하면)
   const destName = routeInfo?.destination || null;
   const timeMin = routeInfo?.time ?? routeInfo?.timeMin;
+  //컨텍스트에서 공유하는 모드변경
+  useEffect(() => {
+    if (mode === "destination" || mode === "drive") {
+      setNearbyOverlays(prev => {
+        prev.forEach((ov) => ov.setMap(null));
+        return [];
+      });
+      setNearbyList(null);
+    }
+  }, [mode]);
   //파이썬 회귀분석
   useEffect(() => {
     if (!routeInfo?.destination || !visibleOnly?.length) return;
@@ -88,7 +98,7 @@ export default function Main() {
         .catch(err => console.error(err));
 
   };
-   useEffect(() => {
+  useEffect(() => {
     if (go && window.currentRouteLine) window.__routeLocked = true; // 고정
     if (!go) window.__routeLocked = false;                          // 해제
   }, [go]);
@@ -173,20 +183,20 @@ export default function Main() {
   }, [coordinates, go, routeInfo, parkingList, map]);
 
   useEffect(() => {
-   if (!go || !maneuvers?.length) { setNextTurn(null); return; }
+    if (!go || !maneuvers?.length) { setNextTurn(null); return; }
 
-   const { lat: curLat, lng: curLng } = coordinates;
-   let best = null;     // 30km 이내에서 가장 가까운 지점
-   let nearest = null;  // 범위 밖이면 전체 중 최단 지점 fallback
+    const { lat: curLat, lng: curLng } = coordinates;
+    let best = null;     // 30km 이내에서 가장 가까운 지점
+    let nearest = null;  // 범위 밖이면 전체 중 최단 지점 fallback
 
-   for (const m of maneuvers) {
-     const d = calcDistanceMeters(curLat, curLng, m.lat, m.lon);
-     if (!nearest || d < nearest.distM) nearest = { turnType: m.turnType, distM: d };
-     if (d <= 30000) { // 30km 허들
-       if (!best || d < best.distM) best = { turnType: m.turnType, distM: d };
-     }
-   }
-   setNextTurn(best || nearest);
+    for (const m of maneuvers) {
+      const d = calcDistanceMeters(curLat, curLng, m.lat, m.lon);
+      if (!nearest || d < nearest.distM) nearest = { turnType: m.turnType, distM: d };
+      if (d <= 30000) { // 30km 허들
+        if (!best || d < best.distM) best = { turnType: m.turnType, distM: d };
+      }
+    }
+    setNextTurn(best || nearest);
   }, [coordinates, go, maneuvers]);
 
   // 지도 중심을 기준으로 재탐색
@@ -194,25 +204,28 @@ export default function Main() {
     if (!map || !routeInfo?.destination) return;
     const c = map.getCenter();
     if (routeInfo.isParking) {
-    await doRoute(c.getLat(), c.getLng(), routeInfo.destination);
-    window.__routeLocked = true; // 재탐색 후에도 고정 유지
-  } else {
-    // 비주차장: 저장된 좌표로 직접 재탐색
-    const data = await callTmapRoute({
-      startX: c.getLng(),
-      startY: c.getLat(),
-      endX: routeInfo.destLng,
-      endY: routeInfo.destLat,
-    });
-    if (!data) return;
-    const { pathPoints } = parseTmapGeojsonToPolyline(data);
+      await doRoute(c.getLat(), c.getLng(), routeInfo.destination);
+      window.__routeLocked = true; // 재탐색 후에도 고정 유지
+    } else {
+      // 비주차장: 저장된 좌표로 직접 재탐색
+      const data = await callTmapRoute({
+        startX: c.getLng(),
+        startY: c.getLat(),
+        endX: routeInfo.destLng,
+        endY: routeInfo.destLat,
+      });
+      if (!data) return;
+      // ⬇️ 회전 지점 추출(비주차장도 동일 포맷)
+      setManeuvers(extractManeuvers(data));
 
-    clearRoutePath?.();
-    drawRoutePath(map, pathPoints, "#3897f0");
+      const { pathPoints } = parseTmapGeojsonToPolyline(data);
 
-    window.__routeLocked = true; // 고정 유지
-  }
-};
+      clearRoutePath?.();
+      drawRoutePath(map, pathPoints, "#3897f0");
+
+      window.__routeLocked = true; // 고정 유지
+    }
+  };
   // 선택된 권종 minutes와 startTime으로 종료시간 계산
   const endTime = React.useMemo(() => {
     if (!selectedTicket || !startTime) return "-";
@@ -246,11 +259,19 @@ export default function Main() {
       const startX = coordinates.lng;
       const startY = coordinates.lat;
 
-      const endPark = parkingList.find(p => p.PKLT_NM === routeInfo.destination);
-      if (!endPark) return;
-
-      const endX = parseFloat(endPark.LOT);
-      const endY = parseFloat(endPark.LAT);
+      // ⬇️ 주차장/비주차장 모두 처리
+      let endX, endY;
+      if (routeInfo.isParking) {
+        const endPark = parkingList.find(p => p.PKLT_NM === routeInfo.destination);
+        if (!endPark) return;
+        endX = parseFloat(endPark.LOT);
+        endY = parseFloat(endPark.LAT);
+      } else {
+        // 비주차장: 저장된 좌표 사용
+        if (typeof routeInfo.destLng !== "number" || typeof routeInfo.destLat !== "number") return;
+        endX = routeInfo.destLng;
+        endY = routeInfo.destLat;
+      }
 
       try {
         const res = await fetch("https://apis.openapi.sk.com/tmap/routes?version=1", {
@@ -268,6 +289,7 @@ export default function Main() {
 
         const data = await res.json();
         if (!data.features || !data.features.length) return;
+        // ⬇️ 주차장/비주차장 공통: 회전 지점 반영
         setManeuvers(extractManeuvers(data));
 
         let pathPoints = [];
@@ -465,7 +487,7 @@ export default function Main() {
 
     const { pathPoints, totalTime, totalDistance } =
         parseTmapGeojsonToPolyline(data);
-        setManeuvers(extractManeuvers(data));
+    setManeuvers(extractManeuvers(data));
 
     // 기존 경로 제거
     clearRoutePath();
@@ -915,10 +937,11 @@ export default function Main() {
                     ParkingList={parkingList}
                     routeInfo={routeInfo}
                     setRouteInfo={setRouteInfo}
+                    maneuvers={maneuvers}
                     hideLegacyBottom
                 />
             )}
-            {mode === "favorites" && <FavoritesPanel map={map} coordinates={coordinates} ParkingList={parkingList} onRerouteClick={onRerouteClick} doRoute={doRoute} routeInfo={routeInfo} setRouteInfo={setRouteInfo}/>}
+            {mode === "favorites" && <FavoritesPanel map={map} coordinates={coordinates} ParkingList={parkingList} onRerouteClick={onRerouteClick} doRoute={doRoute} routeInfo={routeInfo} setRouteInfo={setRouteInfo} setMode={setMode} mode={mode}/>}
 
             {/* ✅ 경로가 생기면 카드만 노출 (중복 제거) */}
             {mode === "destination" && routeInfo?.destination && (
@@ -992,11 +1015,11 @@ export default function Main() {
                         className="rt-ico rt-ico-close"
                         aria-label="닫기"
                         onClick={() => {
-                        setRouteInfo({});
-                        setGO(false);
-                        clearRoutePath?.();
-                        window.__routeLocked = false; // 잠금 해제
-                      }}
+                          setRouteInfo({});
+                          setGO(false);
+                          clearRoutePath?.();
+                          window.__routeLocked = false; // 잠금 해제
+                        }}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M18 6L6 18M6 6l12 12"/>

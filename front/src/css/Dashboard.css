@@ -14,20 +14,6 @@
     color: #1f3c88;
 }
 
-/* 주차장 정보 박스 */
-.park-info {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 25px;
-    margin-bottom: 25px;
-    font-size: 25px;
-    background-color: #ffffff;
-    padding: 15px 20px;
-    border-radius: 10px;
-    border: 1px solid #d1d9e6;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
 /* 예약 없을 때 메시지 */
 .no-reservation {
     color: #888;
@@ -137,4 +123,39 @@
     .reservation-table td:first-child {
         width: 100px;
     }
+}
+/* 주차장 정보 영역 */
+.park-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2열 그리드 */
+    gap: 20px; /* 셀 간 간격 */
+    padding: 20px;
+    background-color: #ffffff; /* 테이블과 동일한 배경색 */
+    border: 1px solid #d1d9e6; /* 테이블 테두리와 통일 */
+    border-radius: 10px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* 약간의 그림자 */
+}
+
+/* 각 정보 카드 */
+.park-info div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: #f7f9fc; /* 테이블 헤더와 톤 맞춤 */
+    border: 1px solid #d1d9e6;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #2c3e50;
+    text-align: center;
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* 마우스 오버 시 살짝 강조 효과 */
+.park-info div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }

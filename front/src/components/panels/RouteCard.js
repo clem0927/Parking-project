@@ -297,7 +297,7 @@ export default function RouteCard({
                                 window.currentRouteLine = null;
                             }
                             window.__routeLocked = false; // 잠금 해제
-                            }}>닫기</button>
+                        }}>닫기</button>
                     </div>
                 </>
             )}

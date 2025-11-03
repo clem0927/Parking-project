@@ -127,17 +127,22 @@ export default function DestinationPanel({ map, coordinates, setGO, setMode,rout
     return (
         <div>
             <div className="section-title">목적지 탐색</div>
-            <div className="input-wrap">
-                <input
-                    className="input"
-                    placeholder="검색어 입력"
-                    value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                />
+
+            <div className="search-row">
+                <div className="input-wrap">
+                    <input
+                        className="input"
+                        placeholder="검색어 입력"
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                    />
+                </div>
+
+                <button className="primary-btn" onClick={searchTmapPOI}>
+                    검색
+                </button>
             </div>
-            <button className="primary-btn" style={{ flex: 1, marginTop: 8 }} onClick={searchTmapPOI}>
-                검색
-            </button>
+
             <hr />
 
             {/* 검색 결과 */}
@@ -187,9 +192,9 @@ export default function DestinationPanel({ map, coordinates, setGO, setMode,rout
                                     isParking: false,               // 비주차장 플래그
                                     destLat: selectedRoute.destLat, // 목적지 위도
                                     destLng: selectedRoute.destLng, // 목적지 경도
-                                    });
-                                }}
-                                >
+                                });
+                            }}
+                        >
                             안내 시작
                         </button>
                         <button
