@@ -81,4 +81,32 @@ public class ParkRestController {
                     .body("서버 오류 발생: " + e.getMessage());
         }
     }
+    @PostMapping("/unregisterPark")
+    public ResponseEntity<String> unregisterPark(@RequestBody Map<String, String> request) {
+        try {
+            String adminId = request.get("adminId");
+
+            if (adminId == null) {
+                return ResponseEntity.badRequest().body("adminId가 필요합니다.");
+            }
+
+            Admin admin = adminRepository.findById(adminId).orElse(null);
+            if (admin == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("해당 관리자를 찾을 수 없습니다.");
+            }
+
+            // 🔹 park 연결 해제
+            admin.setPark(null);
+
+            adminRepository.save(admin);
+
+            return ResponseEntity.ok("관리자의 주차장 연결이 해제되었습니다.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("서버 오류 발생: " + e.getMessage());
+        }
+    }
 }

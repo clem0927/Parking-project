@@ -17,6 +17,7 @@ import DestinationMobile from "./mobile_panels/DestinationMobile";
 import DriveMobile from "./mobile_panels/DriveMobile";
 import FavoriteMobile from "./mobile_panels/FavoriteMobile";
 import RouteCardMobile from "./mobile_panels/RouteCardMobile";
+import ParkingChartMobile from "./mobile_panels/ParkingChartMobile";
 
 export default function Main() {
     const [mode, setMode] = useState("destination"); // destination | drive | favorites
@@ -47,7 +48,7 @@ export default function Main() {
     const [predictedRemain, setPredictedRemain] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     //컨텍스트 사용
-    const {visibleOnly, setVisibleOnly} = useContext(ParkingContext);
+    const {visibleOnly,setVisibleOnly,nearbyList,setNearbyList,nearbyOverlays,setNearbyOverlays} = useContext(ParkingContext);
     const {buildMarkerImage,buildOverlayHTML}=useContext(MarkerContext2);
     const {calcDistanceMeters,clearRoutePath,drawRoutePath,clearRouteLine,TurnBanner,TURN_MAP,formatMeters,extractManeuvers}=useContext(RouteContext);
     const {pad2,toDateFromHHMM,addMinutesHHMM,roundToNextHourHH,HOURS_24,calcTicketPrice,TICKETS}=useContext(CalculationContext);
@@ -55,6 +56,15 @@ export default function Main() {
     // 도착지명/ETA/예상 여석(가능하면)
     const destName = routeInfo?.destination || null;
     const timeMin = routeInfo?.time ?? routeInfo?.timeMin;
+    useEffect(() => {
+        if (mode === "destination" || mode === "drive") {
+            setNearbyOverlays(prev => {
+                prev.forEach((ov) => ov.setMap(null));
+                return [];
+            });
+            setNearbyList(null);
+        }
+    }, [mode]);
     //파이썬 회귀분석
     useEffect(() => {
         if (!routeInfo?.destination || !visibleOnly?.length) return;
@@ -209,6 +219,9 @@ export default function Main() {
                 endY: routeInfo.destLat,
             });
             if (!data) return;
+            // ⬇️ 회전 지점 추출(비주차장도 동일 포맷)
+            setManeuvers(extractManeuvers(data));
+
             const { pathPoints } = parseTmapGeojsonToPolyline(data);
 
             clearRoutePath?.();
@@ -250,11 +263,19 @@ export default function Main() {
             const startX = coordinates.lng;
             const startY = coordinates.lat;
 
-            const endPark = parkingList.find(p => p.PKLT_NM === routeInfo.destination);
-            if (!endPark) return;
-
-            const endX = parseFloat(endPark.LOT);
-            const endY = parseFloat(endPark.LAT);
+            // ⬇️ 주차장/비주차장 모두 처리
+            let endX, endY;
+            if (routeInfo.isParking) {
+                const endPark = parkingList.find(p => p.PKLT_NM === routeInfo.destination);
+                if (!endPark) return;
+                endX = parseFloat(endPark.LOT);
+                endY = parseFloat(endPark.LAT);
+            } else {
+                // 비주차장: 저장된 좌표 사용
+                if (typeof routeInfo.destLng !== "number" || typeof routeInfo.destLat !== "number") return;
+                endX = routeInfo.destLng;
+                endY = routeInfo.destLat;
+            }
 
             try {
                 const res = await fetch("https://apis.openapi.sk.com/tmap/routes?version=1", {
@@ -272,6 +293,7 @@ export default function Main() {
 
                 const data = await res.json();
                 if (!data.features || !data.features.length) return;
+                // ⬇️ 주차장/비주차장 공통: 회전 지점 반영
                 setManeuvers(extractManeuvers(data));
 
                 let pathPoints = [];
@@ -863,13 +885,12 @@ export default function Main() {
                         const position = new window.kakao.maps.LatLng(coordinates.lat,coordinates.lng);
                         map.setCenter(position);
                     }} style={{fontSize:"30px"}}>내위치로</button>
-                    <Link className="link-btn" to="/admin" style={{fontSize:"30px"}}>관리자</Link>
                     {user ? (
                         <Link className="link-btn" to="#" onClick={handleLogout} style={{fontSize:"30px"}}>로그아웃</Link>
                     ) : (
                         <Link className="link-btn" to="/login" style={{fontSize:"30px"}}>로그인</Link>
                     )}
-                    <Link className="link-btn" to="/mobile" style={{fontSize:"30px"}}>모바일 버전</Link>
+                    <Link className="link-btn" to="/" style={{fontSize:"30px"}}>PC버전</Link>
                 </div>
 
                 <div
@@ -985,13 +1006,13 @@ export default function Main() {
 
             <div>
                 {showModal && modalParkName && (
-                    <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                            <ParkingChart
+                    <div className="modal-backdrop" onClick={() => setShowModal(false)} >
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{width:"90%"}}>
+                            <ParkingChartMobile
                                 parkName={modalParkName}
                                 csvDataByName={csvDataByName}
                             />
-                            <button onClick={() => setShowModal(false)} className="modal-close">
+                            <button onClick={() => setShowModal(false)} className="modal-close" style={{fontSize:30}}>
                                 닫기
                             </button>
                         </div>

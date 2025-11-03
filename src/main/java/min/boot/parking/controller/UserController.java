@@ -72,22 +72,35 @@ public class UserController {
     // 현재 로그인한 사용자 정보 조회
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpSession session) {
-        Object loggedIn = session.getAttribute("user");
-            String role = (String) session.getAttribute("role");
-            if (loggedIn == null || role == null) {
-                return ResponseEntity.status(401).build();
-            }
-            if ("USER".equals(role)) {
-                User user = (User) loggedIn;
-                user.setPassword(null); // 패스워드 제거
-                return ResponseEntity.ok(user);
-            } else if ("ADMIN".equals(role)) {
-                Admin admin = (Admin) loggedIn;
-                admin.setPassword(null); // 패스워드 제거
-            return ResponseEntity.ok(new AdminDTO(admin));
+        String role = (String) session.getAttribute("role");
+        if (role == null) {
+            return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.status(401).build(); // 예외 케이스
+        // 세션에서 ID 추출
+        Object loggedIn = session.getAttribute("user");
+        if (loggedIn == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        if ("USER".equals(role)) {
+            User sessionUser = (User) loggedIn;
+            // 항상 최신 데이터로 갱신
+            User freshUser = userRepository.findById(sessionUser.getId()).orElse(null);
+            if (freshUser == null) return ResponseEntity.status(404).build();
+            freshUser.setPassword(null);
+            return ResponseEntity.ok(freshUser);
+        }
+        else if ("ADMIN".equals(role)) {
+            Admin sessionAdmin = (Admin) loggedIn;
+            // DB에서 새로 가져옴
+            Admin freshAdmin = adminRepository.findById(sessionAdmin.getId()).orElse(null);
+            if (freshAdmin == null) return ResponseEntity.status(404).build();
+            freshAdmin.setPassword(null);
+            return ResponseEntity.ok(new AdminDTO(freshAdmin));
+        }
+
+        return ResponseEntity.status(401).build();
     }
 
     // 로그아웃

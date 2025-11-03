@@ -308,7 +308,7 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
                                         map.setLevel(3);
 
                                         const marker = new window.kakao.maps.Marker({ position: pos });
-                                        marker.setMap(map);
+
                                     }}
                                 >
                                     위치보기
