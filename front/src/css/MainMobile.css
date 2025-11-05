@@ -96,3 +96,39 @@
 .ep-overlay__btn2{
     font-size:25px;
 }
+
+/* === 모바일: '목적지 탐색' 검색창 한 줄 배치 === */
+
+/* 버튼이 전체폭으로 내려가는 기본 스타일 덮어쓰기 */
+.sidebar2 .primary-btn-center {
+  width: auto;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* "목적지 탐색" 바로 밑 첫 input-wrap */
+.sidebar2 .panel-wrap .section-title + .input-wrap {
+  display: inline-flex;
+  align-items: center;
+  width: calc(100% - 120px);   /* 오른쪽 버튼 자리 확보 */
+  margin-right: 8px;
+  height: 52px;                /* 버튼과 동일 높이 */
+}
+
+/* 그 다음 오는 검색 버튼을 오른쪽에 붙이기 */
+.sidebar2 .panel-wrap .section-title + .input-wrap + .primary-btn-center {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;                /* 인풋과 동일 높이 */
+  vertical-align: middle;
+  padding: 0 24px;             /* 세로는 height로 맞추고, 가로만 패딩 */
+}
+
+/* 인풋은 남은 공간을 꽉 채우게 */
+.sidebar2 .panel-wrap .section-title + .input-wrap .input {
+  width: 100%;
+}

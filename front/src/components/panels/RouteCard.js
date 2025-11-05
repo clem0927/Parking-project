@@ -243,16 +243,16 @@ export default function RouteCard({
                     <div className="stat-stack">
                         {/* 헤더 */}
                         <div className="arrival-head" style={{fontSize:"20px"}}>
-                            <span className="loading-mini" aria-hidden="true"></span>
-                            <span>도착시</span>
+                            <span className="loading-mini" aria-hidden="true" style={{width:20,height:20}}></span>
+                            <span>도착시간</span>
                             <b style={{ marginLeft: 6 }}>{eta}</b>
                         </div>
 
                         {/* 3개 카드: 정가운데 정렬 */}
                         <div className="stats-row arrival-row">
-                            <div className="ep-stat2"><span>총자리</span><b>{park.TPKCT ?? "-"}</b></div>
-                            <div className="ep-stat2"><span>주차된 차량</span><b>{park.TPKCT - (predictedRemain != null ? Math.round(predictedRemain) : 0)}</b></div>
-                            <div className="ep-stat2"><span>도착시 여석</span><b>{predictedRemain != null ? Math.round(predictedRemain) : "-"}</b></div>
+                            <div className="ep-stat2"><span>총자리</span><b style={{color:"black"}}>{park.TPKCT ?? "-"}</b></div>
+                            <div className="ep-stat2"><span>주차된 차량</span><b style={{color:"black"}}>{park.TPKCT - (predictedRemain != null ? Math.round(predictedRemain) : 0)}</b></div>
+                            <div className="ep-stat2"><span>도착시 여석</span><b style={{color:"#3897f0"}}>{predictedRemain != null ? Math.round(predictedRemain) : "-"}</b></div>
                         </div>
 
                         {/* 도착시 혼잡도 게이지 (항상 노출) */}
@@ -263,18 +263,16 @@ export default function RouteCard({
                     </div>
 
                     {/* [2] 현재 블록 */}
-                    <div className="stats-row">
-                        <div className="ep-stat">
-                            <b>
-                          <span style={{ fontSize: "14px", color: "black" }}>
-                            <div>현재</div>
-                            <div>{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}</div>
-                          </span>
-                            </b>
-                        </div>
-                        <div className="ep-stat"><span>총자리</span><b>{park.TPKCT ?? "-"}</b></div>
-                        <div className="ep-stat"><span>주차된 차량</span><b>{park.liveCnt ?? "-"}</b></div>
-                        <div className="ep-stat"><span>현재 여석</span><b>{expectedRemain}</b></div>
+                    <div className="arrival-head" style={{fontSize:"20px"}} >
+                        <span className="loading-mini" aria-hidden="true"  style={{width:20,height:20}}></span>
+                        <span  >현재시간</span>
+                        <b  style={{ marginLeft: 6 }}>{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}</b>
+                    </div>
+                    {/* [2] 현재 블록 */}
+                    <div className="stats-row  arrival-row">
+                        <div className="ep-stat"><span >총자리</span><b>{park.TPKCT ?? "-"}</b></div>
+                        <div className="ep-stat"><span >주차된 차량</span><b>{park.liveCnt ?? "-"}</b></div>
+                        <div className="ep-stat"><span >현재 여석</span><b>{expectedRemain}</b></div>
                     </div>
                     {/* === [REPLACE-END] === */}
 

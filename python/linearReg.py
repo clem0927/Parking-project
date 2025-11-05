@@ -15,7 +15,7 @@ CORS(app, resources={r"/ml/*": {"origins": "*"}})  # 모든 도메인 허용 (�
 # ===============================
 # 설정
 # ===============================
-file_pattern = "../parking_data/202510*.csv"
+file_pattern = "../parking_data/2025*.csv"
 use_polynomial = True  # True면 다항 회귀, False면 단순 선형 회귀
 poly_degree = 2         # 다항 차수
 lookback_hours = 2      # 예측 시각 ± 몇 시간 범위 사용할지
