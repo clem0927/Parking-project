@@ -249,7 +249,7 @@ export default function Main() {
         endY: routeInfo.destLat,
       });
       if (!data) return;
-      // ⬇️ 회전 지점 추출(비주차장도 동일 포맷)
+      //회전 지점 추출(비주차장도 동일 포맷)
       setManeuvers(extractManeuvers(data));
 
       const { pathPoints } = parseTmapGeojsonToPolyline(data);
@@ -293,7 +293,7 @@ export default function Main() {
       const startX = coordinates.lng;
       const startY = coordinates.lat;
 
-      // ⬇️ 주차장/비주차장 모두 처리
+      // 주차장/비주차장 모두 처리
       let endX, endY;
       if (routeInfo.isParking) {
         const endPark = parkingList.find(p => p.PKLT_NM === routeInfo.destination);
@@ -323,7 +323,7 @@ export default function Main() {
 
         const data = await res.json();
         if (!data.features || !data.features.length) return;
-        // ⬇️ 주차장/비주차장 공통: 회전 지점 반영
+        // 주차장/비주차장 공통: 회전 지점 반영
         setManeuvers(extractManeuvers(data));
 
         let pathPoints = [];
@@ -378,7 +378,7 @@ export default function Main() {
   useEffect(() => {
     window.onRerouteClick = onRerouteClick;
   }, [onRerouteClick]);
-  // ✅ 주행 탭으로 들어가면, #map 안의 예전 하단 바만 깔끔히 숨김
+  // 주행 탭으로 들어가면, #map 안의 예전 하단 바만 깔끔히 숨김
   useEffect(() => {
     if (mode !== "drive") return;
     const mapEl = document.getElementById("map");
@@ -541,43 +541,6 @@ export default function Main() {
       destination: destName,
     }));
   }
-  /*
-  // CSV 전체 파싱 (주차장별 데이터 구조화)
-  useEffect(() => {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 일=0, 월=1, ..., 수=3
-    const lastWeekDate = new Date(today);
-    lastWeekDate.setDate(today.getDate() - 7); // 7일 전
-    // 원하는 요일로 맞추기 (예: 오늘이 수요일이면 지난주 수요일)
-    const diff = dayOfWeek - lastWeekDate.getDay();
-    lastWeekDate.setDate(lastWeekDate.getDate() + diff);
-
-    // 파일명 생성: YYYYMMDD 형식
-    const yyyy = lastWeekDate.getFullYear();
-    const mm = String(lastWeekDate.getMonth() + 1).padStart(2, "0");
-    const dd = String(lastWeekDate.getDate()).padStart(2, "0");
-    const fileName = `/${yyyy}${mm}${dd}.csv`;
-    console.log(fileName)
-    Papa.parse("../../parking_data/20251004.csv", {
-      download: true,
-      header: true,
-      complete: (result) => {
-        const grouped = {};
-        result.data.forEach((row) => {
-          const name = row.PKLT_NM;
-          if (!name) return;
-          if (!grouped[name]) grouped[name] = [];
-          grouped[name].push({
-            time: row.timestamp ? row.timestamp.split(" ")[1].slice(0, 5) : "",
-            liveCnt: Number(row.liveCnt) || 0,
-            remainCnt: Number(row.remainCnt) || 0,
-          });
-        });
-        setCsvDataByName(grouped);
-      },
-      error: (err) => console.error("CSV 파싱 에러:", err),
-    });
-  }, []);*/
   useEffect(() => {
     const fetchLastWeekData = async () => {
       try {
@@ -662,9 +625,6 @@ export default function Main() {
       );
     });
   }, []);
-
-  // ⚠️ A안: 자동 라우팅 useEffect 제거됨
-  // (좌표/지도 변화에 따라 경로를 자동으로 다시 요청하지 않습니다)
 
   useEffect(() => {
     const suppress = go || mode === "drive";
