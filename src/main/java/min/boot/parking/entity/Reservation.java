@@ -53,6 +53,11 @@ public class Reservation {
     @JsonProperty("createdAt")
     private LocalDateTime createdAt;
 
+    @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    @JsonIgnore
+    private ReservationDetail detail;
+
+
     // 생성 시 자동 등록
     @PrePersist
     public void onCreate() {

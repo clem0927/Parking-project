@@ -144,6 +144,7 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
                 }
             } catch {
                 if (!abort) setList([]);
+
             } finally {
                 if (!abort) setLoading(false);
             }

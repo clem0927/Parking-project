@@ -1083,8 +1083,45 @@ export default function Main() {
                         fontWeight: "600",
                         cursor: "pointer",
                       }}
-                  >
-                    안내 계속
+                      onClick={async () => {
+                        try {
+                          // 1️⃣ 주차장 ID 찾기
+                          const parkId = visibleOnly.find(p => p.PKLT_NM === routeInfo.destination)?.PKLT_CD;
+                          if (!parkId) {
+                            console.error("주차장 ID를 찾을 수 없습니다.");
+                            return;
+                          }
+
+                          // 2️⃣ 현재 사용자 예약 가져오기
+                          const response = await axios.get(`/api/reservations/park/${parkId}`);
+                          const reservations = response.data || [];
+                          const myReservations = reservations.filter(res => res.userId === user.id);
+
+                          if (myReservations.length === 0) {
+                            console.log("예약이 없습니다.");
+                            return;
+                          }
+
+                          const reservation = myReservations[0]; // 첫 번째 예약 선택
+                          const reservationId = reservation.id;
+
+                          // 3️⃣ ReservationDetailDTO 구성
+                          const detailDto = {
+                            reservationId: reservationId,
+                            userId: user.id,
+                            parkId: parkId,
+                            checkInTime: new Date() // 현재 시간
+                          };
+
+                          // 4️⃣ API 호출
+                          const result = await axios.post("/api/reservation-detail/create", detailDto);
+                          console.log("입차 완료:", result.data);
+
+                        } catch (error) {
+                          console.error("입차 처리 중 오류:", error);
+                        }
+                      }}>
+                    입차
                   </button>
                   <button
                       style={{
