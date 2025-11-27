@@ -901,8 +901,9 @@ export default function Main() {
                   className={`tab ${mode === "favorites" ? "active" : ""}`}
                   onClick={() => setMode("favorites")}
               >
-                예약 내역
+                예약
               </button>
+
             </div>
           </div>
           {/*주행 안내판*/}

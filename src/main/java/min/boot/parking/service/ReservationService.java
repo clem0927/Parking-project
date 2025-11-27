@@ -32,4 +32,5 @@ public class ReservationService {
     public void deleteReservation(Long reservationId) {
         reservationRepository.deleteById(reservationId);
     }
+
 }

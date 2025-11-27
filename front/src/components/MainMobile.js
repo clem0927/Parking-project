@@ -910,7 +910,7 @@ export default function Main() {
                     {user ? (
                         <Link className="link-btn" to="#" onClick={handleLogout} style={{fontSize:"30px"}}>로그아웃</Link>
                     ) : (
-                        <Link className="link-btn" to="/login" style={{fontSize:"30px"}}>로그인</Link>
+                        <Link className="link-btn" to="/loginMobile" style={{fontSize:"30px"}}>로그인</Link>
                     )}
                     <Link className="link-btn" to="/" style={{fontSize:"30px"}}>PC버전</Link>
                 </div>

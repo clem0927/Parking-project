@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,11 +48,9 @@ public class ReservationRestController {
     @PostMapping("/create")
     public ResponseEntity<String> createReservation(@RequestBody ReservationDTO dto) {
         try {
-            // Park 조회
             Park park = parkRepository.findById(dto.getParkCode())
                     .orElseThrow(() -> new IllegalArgumentException("해당 주차장을 찾을 수 없습니다."));
 
-            // Reservation 생성
             Reservation reservation = Reservation.builder()
                     .park(park)
                     .parkName(dto.getParkName())
@@ -61,9 +60,9 @@ public class ReservationRestController {
                     .startTime(dto.getStartTime())
                     .endTime(dto.getEndTime())
                     .userId(dto.getUserId())
+                    .date(dto.getDate()) // <- 추가
                     .build();
 
-            // DB 저장
             reservationService.save(reservation);
 
             return ResponseEntity.ok("예약 완료");

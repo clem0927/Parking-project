@@ -16,4 +16,5 @@ public class ReservationDTO {
     private String endTime;
     private String userId;
     private Integer parkCode; // 외래키 주차장 코드
+    private String date;
 }

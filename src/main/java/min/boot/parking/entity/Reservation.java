@@ -46,6 +46,9 @@ public class Reservation {
     @JsonProperty("userId")
     private String userId;
 
+    @Column(name = "PARKING_DATE")
+    @JsonProperty("date")
+    private String date;
     // 예약 등록 시점
     @JsonProperty("createdAt")
     private LocalDateTime createdAt;

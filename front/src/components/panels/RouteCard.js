@@ -1,6 +1,7 @@
 // RouteCard.js
 import React from "react";
 import {useState,useEffect} from "react";
+
 export default function RouteCard({
                                       map,
                                       coordinates,
@@ -28,6 +29,8 @@ export default function RouteCard({
                                       calcTicketPrice,
                                       predictedRemain
                                   }) {
+    const [reserveDate, setReserveDate] = useState("");
+
     if (mode !== "destination" || !routeInfo?.destination) return null;
 
     const getStatus = (park) => {
@@ -116,11 +119,18 @@ export default function RouteCard({
 
                     {/* 요약/동의 */}
                     <div className="reserve-summary">
+                        {/* 선택 권종 */}
+                        <div className="summary-item  start" >
+                            <span>날짜</span>
+                            <b><input type="date" style={{width:"90%",color:"var(--ink)",fontFamily: "inherit",
+                                fontSize: "16px", fontWeight: 600}} value={reserveDate} onChange={(e)=>setReserveDate(e.target.value)}/></b>
+                        </div>
                         {/* 시작 */}
-                        <div className="summary-item start">
+                        <div className="summary-item " style={{width:"100%"}}>
                             <span>시작</span>
-                            <select className="time-select" value={startTime || ""} onChange={e=>setStartTime(e.target.value)}>
-                                <option value="" disabled>시간 선택</option>
+                            <select style={{color:"var(--ink)",fontFamily: "inherit",
+                                fontSize: "16px", fontWeight: 600}} className="time-select" value={startTime || ""} onChange={e=>setStartTime(e.target.value)}>
+                                <option value="" disabled >시간 선택</option>
                                 {HOURS_24.map(h => {
                                     const v = `${pad2(h)}:00`;
                                     return <option key={v} value={v}>{v}</option>;
@@ -128,14 +138,8 @@ export default function RouteCard({
                             </select>
                         </div>
 
-                        {/* 선택 권종 */}
-                        <div className="summary-item">
-                            <span>시간</span>
-                            <b>{selectedTicket ? selectedTicket.label : "-"}</b>
-                        </div>
-
                         {/* 종료(자동 계산) */}
-                        <div className="summary-item">
+                        <div className="summary-item" >
                             <span>종료시간</span>
                             <b>{endTime}</b>
                         </div>
@@ -171,6 +175,7 @@ export default function RouteCard({
                                             endTime,
                                             userId: user?.id,
                                             ticket: selectedTicket.key,
+                                            date: reserveDate
                                         }),
                                     });
                                     alert("예약이 완료되었습니다.");
@@ -211,6 +216,7 @@ export default function RouteCard({
                                             endTime,
                                             createdAt: new Date().toISOString(),
                                             ticket: selectedTicket.key,
+                                            date: reserveDate
                                         };
                                         const stash = JSON.parse(localStorage.getItem("mockReservations") || "[]");
                                         stash.unshift(mock);
