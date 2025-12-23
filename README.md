@@ -1,5 +1,6 @@
 <a href="https://club-project-one.vercel.app/" target="_blank">
-<img src="assets/banner.png" alt="배너" width="100%"/>
+<img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/poster.png" alt="프로젝트 배너" width="100%">
+
 </a>
 
 <br/>
