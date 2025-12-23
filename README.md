@@ -28,7 +28,7 @@ $ npm start
 |:------:|:------:|
 | <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
 | PL | FE |
-| [GitHub](https://github.com/LDK1009) | [GitHub](https://github.com/SinYusi) |
+| [GitHub](https://github.com/clem0927) | [GitHub](https://github.com/20201147-cyber) |
 
 <br/>
 <br/>
