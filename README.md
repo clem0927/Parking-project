@@ -26,7 +26,7 @@ $ npm start
 
 | 김민영 | 김순호 |
 |:------:|:------:|
-| <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
+| <img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/토끼.png" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
 | PL | FE |
 | [GitHub](https://github.com/clem0927) | [GitHub](https://github.com/20201147-cyber) |
 
