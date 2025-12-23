@@ -29,7 +29,7 @@ $ npm start
 | <img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/토끼.png" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
 | **PL** | **FE** |
 | [GitHub](https://github.com/clem0927) | [GitHub](https://github.com/20201147-cyber) |
-| <ul><li>프로젝트 기획 및 관리</li><li>아키텍처 설계</li><li>커스텀 훅 개발</li></ul> | <ul><li>프론트엔드 UI 구현</li><li>페이지별 기능 개발</li><li>커스텀 훅 개발</li></ul> |
+| <ul><li>프로젝트 기획 및 관리</li><li>아키텍처 설계</li><li>백엔드 서버 개발</li></ul> | <ul><li>프론트엔드 UI 구현</li><li>페이지별 기능 개발</li></ul> |
 
 <br/>
 <br/>
