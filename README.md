@@ -23,14 +23,16 @@ $ npm start
 <br/>
 
 # 2. Team Members (팀원 및 팀 소개)
+
 | 김민영 | 김순호 |
-|:------:|:------:|:------:|:------:|
-| <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="이동규" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="신유승" width="150">
+|:------:|:------:|
+| <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
 | PL | FE |
-| [GitHub](https://github.com/LDK1009) | [GitHub](https://github.com/SinYusi) 
+| [GitHub](https://github.com/LDK1009) | [GitHub](https://github.com/SinYusi) |
 
 <br/>
 <br/>
+
 
 # 3. Key Features (주요 기능)
 - **회원가입**:
