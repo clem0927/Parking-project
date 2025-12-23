@@ -29,7 +29,7 @@ $ npm start
 | <img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/토끼.png" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
 | **PL** | **FE** |
 | [GitHub](https://github.com/clem0927) | [GitHub](https://github.com/20201147-cyber) |
-| <ul><li>프로젝트 기획 및 관리</li><li>아키텍처 설계</li><li>커스텀 훅 개발</li></ul> | <ul><li>프론트엔드 UI 구현</li><li>페이지별 기능 개발</li><li>커스텀 훅 개발</li></ul> |
+| <ul><li>프로젝트 기획 및 관리</li><li>아키텍처 설계</li><li>백엔드 서버 구축</li></ul> | <ul><li>프론트엔드 UI 구현</li><li>페이지별 기능 개발</li></ul> |
 
 <br/>
 <br/>
@@ -63,19 +63,9 @@ $ npm start
 <br/>
 <br/>
 
-# 4. Tasks & Responsibilities (작업 및 역할 분담)
-|  |  |  |
-|-----------------|-----------------|-----------------|
-| 이동규    |  <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="이동규" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>커스텀훅 개발</li></ul>     |
-| 신유승   |  <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="신유승" width="100">| <ul><li>메인 페이지 개발</li><li>동아리 만들기 페이지 개발</li><li>커스텀훅 개발</li></ul> |
-| 김나연   |  <img src="https://github.com/user-attachments/assets/78ce1062-80a0-4edb-bf6b-5efac9dd992e" alt="김나연" width="100">    |<ul><li>홈 페이지 개발</li><li>로그인 페이지 개발</li><li>동아리 찾기 페이지 개발</li><li>동아리 프로필 페이지 개발</li><li>커스텀훅 개발</li></ul>  |
-| 이승준    |  <img src="https://github.com/user-attachments/assets/beea8c64-19de-4d91-955f-ed24b813a638" alt="이승준" width="100">    | <ul><li>회원가입 페이지 개발</li><li>마이 프로필 페이지 개발</li><li>커스텀훅 개발</li></ul>    |
 
-<br/>
-<br/>
-
-# 5. Technology Stack (기술 스택)
-## 5.1 Language
+# 4. Technology Stack (기술 스택)
+## 4.1 Language
 |  |  |
 |-----------------|-----------------|
 | HTML5    |<img src="https://github.com/user-attachments/assets/2e122e74-a28b-4ce7-aff6-382959216d31" alt="HTML5" width="100">| 
@@ -84,7 +74,7 @@ $ npm start
 
 <br/>
 
-## 5.2 Frotend
+## 4.2 Frotend
 |  |  |  |
 |-----------------|-----------------|-----------------|
 | React    |  <img src="https://github.com/user-attachments/assets/e3b49dbb-981b-4804-acf9-012c854a2fd2" alt="React" width="100"> | 18.3.1    |
@@ -94,14 +84,14 @@ $ npm start
 
 <br/>
 
-## 5.3 Backend
+## 4.3 Backend
 |  |  |  |
 |-----------------|-----------------|-----------------|
 | Firebase    |  <img src="https://github.com/user-attachments/assets/1694e458-9bb0-4a0b-8fe6-8efc6e675fa1" alt="Firebase" width="100">    | 10.12.5    |
 
 <br/>
 
-## 5.4 Cooperation
+## 4.4 Cooperation
 |  |  |
 |-----------------|-----------------|
 | Git    |  <img src="https://github.com/user-attachments/assets/483abc38-ed4d-487c-b43a-3963b33430e6" alt="git" width="100">    |
@@ -110,7 +100,7 @@ $ npm start
 
 <br/>
 
-# 6. Project Structure (프로젝트 구조)
+# 5. Project Structure (프로젝트 구조)
 ```plaintext
 project/
 ├── public/
