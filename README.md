@@ -22,29 +22,7 @@ $ npm start
 <br/>
 <br/>
 
-# 2. Team Members (팀원 및 팀 소개)
-
-| 구분 | 내용 |
-|:---:|:---|
-| 이름 | **김민영** |
-| 역할 | **PL** |
-| 사진 | <img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/토끼.png" alt="김민영" width="150"> |
-| GitHub | [https://github.com/clem0927](https://github.com/clem0927) |
-| 담당 업무 | <ul><li>프로젝트 기획 및 관리</li><li>아키텍처 설계</li><li>백엔드 서버 개발</li></ul> |
-
-<br/>
-
-| 구분 | 내용 |
-|:---:|:---|
-| 이름 | **김순호** |
-| 역할 | **FE** |
-| 사진 | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> |
-| GitHub | [https://github.com/20201147-cyber](https://github.com/20201147-cyber) |
-| 담당 업무 | <ul><li>프론트엔드 UI 구현</li><li>페이지별 기능 개발</li></ul> |
-
-<br/>
-<br/>
-
+# 2. Team Members (팀원 및 팀 소개) | 김민영 | 김순호 | |:------:|:------:| | <img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/토끼.png" alt="김민영" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="김순호" width="150"> | | **PL** | **FE** | | [GitHub](https://github.com/clem0927) | [GitHub](https://github.com/20201147-cyber) | | <ul><li>프로젝트 기획 및 관리</li><li>아키텍처 설계</li><li>백엔드 서버 개발</li></ul> | <ul><li>프론트엔드 UI 구현</li><li>페이지별 기능 개발</li></ul> | <br/> <br/>
 
 # 3. Key Features (주요 기능)
 - **회원가입**:
