@@ -70,7 +70,7 @@ $ npm start
 <img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/개발환경.png" alt="프로젝트 배너" width="60%">
 
 ## 4.1 외부 API
-
+<ul><ol>1.</ol><ol>2.</ol><ol>3.</ol></ul>
 
 <br/>
 
