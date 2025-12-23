@@ -67,7 +67,7 @@ $ npm start
 
 # 4. Technology Stack (기술 스택)
 ## 4.1 개발환경
-<img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/개발환경.png" alt="프로젝트 배너" width="100%">
+<img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/개발환경.png" alt="프로젝트 배너" width="60%">
 
 ## 4.1 외부 API
 
