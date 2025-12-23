@@ -399,10 +399,12 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
 
                                 <div className="res-meta-row">
                                     {r.createdAt ? (
+                                        <>
                                         <div className="res-meta" style={{fontSize:30}}>
-                                            예약일시&nbsp;
+                                            예약일시 &nbsp;
                                             <time>{new Date(r.createdAt).toLocaleString()}</time>
                                         </div>
+                                        </>
                                     ) : (
                                         <span />
                                     )}

@@ -7,6 +7,7 @@ import axios from "axios";
 import DestinationPanel from "./panels/DestinationPanel";
 import DrivePanel from "./panels/DrivePanel";
 import FavoritesPanel from "./panels/FavoritesPanel";
+import MyPanel from "./panels/MyPanel";
 import ParkingChart from "./ParkingChart";
 import RouteCard from "./panels/RouteCard";
 import { ParkingContext } from "../context/ParkingContext";
@@ -15,6 +16,7 @@ import {MarkerContext} from "../context/MarkerContext";
 
 import {RouteContext} from "../context/RouteContext";
 import {CalculationContext} from "../context/CalculationContext";
+import ChatWidget from "./ChatWidget";
 
 export default function Main() {
   const [mode, setMode] = useState("destination"); // destination | drive | favorites
@@ -23,6 +25,67 @@ export default function Main() {
     lat: 37.5662952,
     lng: 126.9779451,
   }); // 서울시청
+
+    // 즐겨찾기 주차장: [{ parkId, name }]
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const raw = localStorage.getItem("ep_favorites");
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ep_favorites", JSON.stringify(favorites));
+    } catch (e) {
+      console.error("즐겨찾기 저장 실패:", e);
+    }
+  }, [favorites]);
+
+    // 특정 주차장을 즐겨찾기 토글
+  const toggleFavorite = (park) => {
+    if (!park?.PKLT_CD) return;
+    setFavorites((prev) => {
+      const exists = prev.some((f) => f.parkId === park.PKLT_CD);
+      if (exists) {
+        return prev.filter((f) => f.parkId !== park.PKLT_CD);
+      }
+      return [
+        ...prev,
+        { parkId: park.PKLT_CD, name: park.PKLT_NM ?? "이름 없는 주차장" },
+      ];
+    });
+  };
+
+  const removeFavorite = (parkId) => {
+    setFavorites((prev) => prev.filter((f) => f.parkId !== parkId));
+  };
+
+  // My 탭에서 즐겨찾기 선택 시: 지도 이동 + 경로 안내
+  const handleFavoriteSelect = async (fav) => {
+    if (!map || !parkingList?.length) return;
+    const park = parkingList.find((p) => p.PKLT_CD === fav.parkId);
+    if (!park) return;
+
+    const lat = parseFloat(park.LAT);
+    const lng = parseFloat(park.LOT);
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      const pos = new window.kakao.maps.LatLng(lat, lng);
+      map.setCenter(pos);
+    }
+
+    setMode("destination");
+    setRouteInfo((prev) => ({
+      ...prev,
+      destination: park.PKLT_NM,
+      isParking: true,
+    }));
+
+    const c = map.getCenter();
+    await doRoute(c.getLat(), c.getLng(), park.PKLT_NM);
+  };
 
   const [start, setStart] = useState({
     lat: 37.5662952,
@@ -903,7 +966,13 @@ export default function Main() {
               >
                 예약
               </button>
-
+              {/* ✅ 새로 추가되는 My 탭 */}
+              <button
+                className={`tab ${mode === "my" ? "active" : ""}`}
+                onClick={() => setMode("my")}
+              >
+                My
+              </button>
             </div>
           </div>
           {/*주행 안내판*/}
@@ -935,6 +1004,15 @@ export default function Main() {
                     maneuvers={maneuvers}
                     hideLegacyBottom
                 />
+            )}
+            {/* ✅ My 탭: 즐겨찾기 목록 */}
+            {mode === "my" && (
+              <MyPanel
+                favorites={favorites}
+                parkingList={parkingList}
+                onSelectFavorite={handleFavoriteSelect}
+                onRemoveFavorite={removeFavorite}
+              />
             )}
             {mode === "favorites" && <FavoritesPanel map={map} coordinates={coordinates} ParkingList={parkingList} onRerouteClick={onRerouteClick} doRoute={doRoute} routeInfo={routeInfo} setRouteInfo={setRouteInfo} setMode={setMode} mode={mode}/>}
 
@@ -1105,12 +1183,14 @@ export default function Main() {
                           const reservation = myReservations[0]; // 첫 번째 예약 선택
                           const reservationId = reservation.id;
 
-                          // 3️⃣ ReservationDetailDTO 구성
+                          const now = new Date();
+                          const koreaTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+
                           const detailDto = {
-                            reservationId: reservationId,
+                            reservationId,
                             userId: user.id,
-                            parkId: parkId,
-                            checkInTime: new Date() // 현재 시간
+                            parkId,
+                            checkInTime: koreaTime.toISOString().slice(0, 19) // 초까지
                           };
 
                           // 4️⃣ API 호출
@@ -1140,6 +1220,8 @@ export default function Main() {
               </div>
             </div>
         )}
+        <ChatWidget/>
       </div>
+
   );
 }

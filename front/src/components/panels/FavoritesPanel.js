@@ -2,12 +2,53 @@
 import React, { useContext, useEffect, useState } from "react";
 import "../../css/FavoritesPanel.css";
 import { ParkingContext } from "../../context/ParkingContext";
+// visibleOnly 배열에서 ADD_CRG, ADD_UNIT_TM_MNT 찾기
+const getParkingFeeInfo = (parkId, visibleOnly) => {
+    const park = visibleOnly.find(p => String(p.PKLT_CD) === String(parkId));
+    if (!park) return null;
+    return {
+        unitMinutes: Number(park.ADD_UNIT_TM_MNT ?? 5), // 단위 (분)
+        unitPrice: Number(park.ADD_CRG ?? 0)            // 1단위 가격
+    };
+};
 
+// 결제액 계산
+const calculateParkingFee = (checkIn, checkOut, unitMinutes, unitPrice) => {
+    const inTime = new Date(checkIn);
+    const outTime = new Date(checkOut);
+
+    const diffMs = outTime - inTime;
+    const diffMin = diffMs / 60000; // 전체 이용 분
+
+    if (diffMin <= 0) return 0;
+
+    // 몇 단위 사용했는지
+    const units = Math.ceil(diffMin / unitMinutes); // 반올림(ceil)
+    // const units = Math.floor(diffMin / unitMinutes); // 반내림 사용 시
+
+    return units * unitPrice;
+};
+const formatDateTime = (str) => {
+    if (!str) return "-";
+    const date = new Date(str);
+    if (isNaN(date)) return "-";
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const h = String(date.getHours()).padStart(2, "0");
+    const min = String(date.getMinutes()).padStart(2, "0");
+
+    return `${y}-${m}-${d} ${h}:${min}`;
+};
 const calculateDistance = (lat1, lng1, lat2, lng2) => {
     return Math.sqrt((lat1 - lat2) ** 2 + (lng1 - lng2) ** 2);
 };
 
 export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRoute, routeInfo, setRouteInfo, mode, setMode }) {
+    const [reservationDetail, setReservationDetail] = useState(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [selectedReservation, setSelectedReservation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [me, setMe] = useState(null);
     const [list, setList] = useState([]);
@@ -304,6 +345,7 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
     }
 
     return (
+        <>
         <div>
             {nearbyList ? (
                 <div className="nearby-list">
@@ -476,12 +518,45 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
                                 </div>
                                 <div className="res-meta-row">
                                     {r.createdAt ? (
+                                        <>
                                         <div className="res-meta">
                                             예약일시&nbsp;
                                             <time>{new Date(r.createdAt).toLocaleString()}</time>
                                         </div>
+                                        </>
                                     ) : <span />}
                                 </div>
+                                <div
+                                    className="res-meta-row"
+                                    style={{ fontWeight:"bold", cursor: "pointer" }}
+                                    onClick={async () => {
+                                        setSelectedReservation(r);  // 선택한 예약 저장
+                                        setDetailLoading(true);
+                                        try {
+                                            const res = await fetch(`/api/reservation-detail/${r.id}`);
+                                            if (res.ok) {
+                                                const data = await res.json();
+                                                setReservationDetail(data);
+
+                                            } else {
+                                                setReservationDetail(null);
+                                            }
+                                        } catch {
+                                            setReservationDetail(null);
+                                        } finally {
+                                            setDetailLoading(false);
+                                        }
+                                    }}
+                                >
+                                    {r.createdAt ? (
+                                        <>
+                                            <div className="res-meta">
+                                                예약상세 보기
+                                            </div>
+                                        </>
+                                    ) : <span />}
+                                </div>
+
                             </article>
                         );
                     })}
@@ -489,6 +564,131 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
                 </>
             )}
         </div>
+            {selectedReservation && (
+                <div className="modal-overlay" onClick={() => {
+                    setSelectedReservation(null);
+                    setReservationDetail(null);
+                }}>
+                    <div
+                        className="modal-content"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{width:"350px",height:"400px"}}
+                    >
+                        <h2>예약 상세</h2>
+                        <p></p>
+                        {detailLoading && <p>불러오는 중...</p>}
 
-    );
+                        {!detailLoading && reservationDetail && (
+                            <div>
+                                <p><b>입차시간:</b> {formatDateTime(reservationDetail.checkInTime)}</p>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                <p><b>출차시간:</b> {formatDateTime(reservationDetail.checkOutTime)}</p>
+                                <button  className="ep-overlay__btn"
+                                    onClick={async () => {
+                                        try {
+                                            const res = await fetch(`/api/reservation-detail/check-out/${selectedReservation.id}`, {
+                                                method: "POST"
+                                            });
+
+                                            if (!res.ok) {
+                                                alert("출차 처리 실패");
+                                                return;
+                                            }
+
+                                            const data = await res.json();
+                                            alert("출차가 완료되었습니다.");
+
+                                            setReservationDetail(prev => ({
+                                                ...prev,
+                                                checkOutTime: data.checkOutTime
+                                            }));
+
+                                        } catch (err) {
+                                            alert("서버 오류가 발생했습니다.");
+                                            console.error(err);
+                                        }
+                                    }}
+                                    style={{width:"60px"}}
+                                >
+                                    출차
+                                </button>
+                                </div>
+                                <p><b>이용시간:</b> {
+                                    reservationDetail.checkInTime && reservationDetail.checkOutTime
+                                        ? `${Math.ceil((new Date(reservationDetail.checkOutTime) - new Date(reservationDetail.checkInTime)) / 60000)}분`
+                                        : "-"
+                                }</p>
+                                <p><b>노쇼 여부:</b> {reservationDetail.noShow ? "예" : "아니오"}</p>
+                                <p><div style={{fontWeight:"bold"}}>결제여부:{reservationDetail.pay ? "예" : "아니오"}</div></p>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <p>
+                                        <b>결제액:</b> {
+                                        (() => {
+                                            if (!reservationDetail.checkInTime || !reservationDetail.checkOutTime) return "-";
+                                            if (!selectedReservation?.parkName) return "-";
+
+                                            const selectedPark = visibleOnly.find(p => p.PKLT_NM === selectedReservation.parkName);
+                                            if (!selectedPark) return "-";
+
+                                            const feeInfo = {
+                                                unitMinutes: Number(selectedPark.ADD_UNIT_TM_MNT ?? 5),
+                                                unitPrice: Number(selectedPark.ADD_CRG ?? 0)
+                                            };
+
+                                            let fee = calculateParkingFee(
+                                                reservationDetail.checkInTime,
+                                                reservationDetail.checkOutTime,
+                                                feeInfo.unitMinutes,
+                                                feeInfo.unitPrice
+                                            );
+
+                                            if (isNaN(fee)) fee = 0;
+                                            return `${fee.toLocaleString()}원`;
+                                        })()
+                                    }
+                                    </p>
+
+                                    {reservationDetail.pay ? (
+                                        <span style={{ color: "green", fontWeight: "bold" }}>결제 완료</span>
+                                    ) : (
+                                        <button
+                                            className="ep-overlay__btn"
+                                            style={{ width: "60px" }}
+                                            onClick={() => {
+                                                // 결제 처리 API 호출
+                                                fetch(`/api/reservation-detail/pay/${reservationDetail.id}`, { method: "POST" })
+                                                    .then(res => res.json())
+                                                    .then(updated => {
+                                                        // 업데이트된 pay 값을 React 상태에 반영
+                                                        setReservationDetail(prev => ({ ...prev, pay: true }));
+                                                    })
+                                                    .catch(err => console.error("결제 실패", err));
+                                            }}
+                                        >
+                                            결제
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {!detailLoading && !reservationDetail && (
+                            <p>예약 상세 정보가 없습니다.</p>
+                        )}
+
+                        <button
+                            className="ep-overlay__btn"
+                            onClick={() => {
+                                setSelectedReservation(null);
+                                setReservationDetail(null);
+                            }}
+                        >
+                            닫기
+                        </button>
+                    </div>
+                </div>
+            )}
+
+        </>
+);
 }

@@ -24,6 +24,11 @@ public class ReservationDetailService {
     private final UserRepository userRepository;
     private final ParkRepository parkRepository;
 
+    @Transactional(readOnly = true)
+    public ReservationDetail findByReservationId(Long reservationId) {
+        return detailRepository.findByReservationId(reservationId);
+    }
+
     @Transactional
     public ReservationDetail createDetail(ReservationDetailDTO dto) {
         Reservation reservation = reservationRepository.findById(dto.getReservationId())
@@ -74,4 +79,19 @@ public class ReservationDetailService {
             detailRepository.save(detail);
         }
     }
+    @Transactional
+    public ReservationDetail payReservation(Long reservationId) {
+        // 예약 상세 조회
+        ReservationDetail detail = detailRepository.findByReservationId(reservationId);
+        if (detail == null) {
+            throw new RuntimeException("예약 상세를 찾을 수 없습니다.");
+        }
+
+        // pay를 true로 설정
+        detail.setPay(true);
+
+        // 저장 후 반환
+        return detailRepository.save(detail);
+    }
+
 }

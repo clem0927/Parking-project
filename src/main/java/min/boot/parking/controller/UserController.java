@@ -109,4 +109,33 @@ public class UserController {
         session.invalidate();
         return ResponseEntity.ok("로그아웃 성공!");
     }
+    // 현재 로그인한 사용자 포인트 조회
+    @GetMapping("/point")
+    public ResponseEntity<?> getPoint(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) return ResponseEntity.status(401).body("로그인 필요");
+
+        User freshUser = userRepository.findById(user.getId()).orElse(null);
+        if (freshUser == null) return ResponseEntity.status(404).body("사용자 없음");
+
+        return ResponseEntity.ok(freshUser.getPoint());
+    }
+
+    // 포인트 충전
+    @PostMapping("/point/charge")
+    public ResponseEntity<?> chargePoint(@RequestParam int amount, HttpSession session) {
+        if (amount <= 0) return ResponseEntity.badRequest().body("충전 금액은 0 이상이어야 합니다.");
+
+        User user = (User) session.getAttribute("user");
+        if (user == null) return ResponseEntity.status(401).body("로그인 필요");
+
+        User freshUser = userRepository.findById(user.getId()).orElse(null);
+        if (freshUser == null) return ResponseEntity.status(404).body("사용자 없음");
+
+        freshUser.setPoint(freshUser.getPoint() + amount);
+        userRepository.save(freshUser);
+
+        session.setAttribute("user", freshUser); // 세션도 최신화
+        return ResponseEntity.ok(freshUser.getPoint());
+    }
 }

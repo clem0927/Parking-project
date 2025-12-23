@@ -41,6 +41,7 @@ export const MarkerProvider2 = ({ children }) => {
               <div class="ep-row ep-row2"><span>전화</span><b>${park.TELNO || "-"}</b></div>
             </div>
             <div class="ep-overlay__actions">
+              
               <button class="ep-overlay__btn ep-overlay__btn2" id="detail-zone">상세분석</button>&nbsp
               <a href="#" class="ep-overlay__btn ep-overlay__btn2" id="route-search" onClick={onRerouteClick}>경로탐색</a>
             </div>

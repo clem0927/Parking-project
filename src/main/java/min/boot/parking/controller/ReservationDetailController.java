@@ -13,6 +13,12 @@ public class ReservationDetailController {
 
     private final ReservationDetailService detailService;
 
+
+    @GetMapping("/{reservationId}")
+    public ReservationDetail getDetail(@PathVariable Long reservationId) {
+        return detailService.findByReservationId(reservationId);
+    }
+
     @PostMapping("/create")
     public ReservationDetail createDetail(@RequestBody ReservationDetailDTO dto) {
         return detailService.createDetail(dto);
@@ -32,4 +38,10 @@ public class ReservationDetailController {
     public void checkNoShow(@PathVariable Long reservationId) {
         detailService.checkNoShow(reservationId);
     }
+    @PostMapping("/pay/{reservationId}")
+    public ReservationDetail pay(@PathVariable Long reservationId) {
+        System.out.println(reservationId);
+        return detailService.payReservation(reservationId);
+    }
+
 }
