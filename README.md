@@ -9,6 +9,8 @@
 # 0. Getting Started (시작하기)
 ```bash
 
+
+### 🎬 Demo Video
 https://github.com/user-attachments/assets/fb03c98b-126e-4c9b-aa65-de33d78c05f7
 
 
