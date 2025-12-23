@@ -66,31 +66,11 @@ $ npm start
 
 
 # 4. Technology Stack (기술 스택)
+## 4.1 개발환경
+<img src="https://raw.githubusercontent.com/clem0927/Parking-project/main/assets/개발환경.png" alt="프로젝트 배너" width="100%">
 
+## 4.1 외부 API
 
-## 4.1 Frotend
-|  |  |  |
-|-----------------|-----------------|-----------------|
-| React    |  <img src="https://github.com/user-attachments/assets/e3b49dbb-981b-4804-acf9-012c854a2fd2" alt="React" width="100"> | 18.3.1    |
-| StyledComponents    |  <img src="https://github.com/user-attachments/assets/c9b26078-5d79-40cc-b120-69d9b3882786" alt="StyledComponents" width="100">| 6.1.12   |
-| MaterialUI    |  <img src="https://github.com/user-attachments/assets/75a46fa7-ebc0-4a9d-b648-c589f87c4b55" alt="MUI" width="100">    | 5.0.0  |
-| DayJs    |  <img src="https://github.com/user-attachments/assets/3632d7d6-8d43-4dd5-ba7a-501a2bc3a3e4" alt="DayJs" width="100">    | 1.11.12    |
-
-<br/>
-
-## 4.2 Backend
-|  |  |  |
-|-----------------|-----------------|-----------------|
-| Firebase    |  <img src="https://github.com/user-attachments/assets/1694e458-9bb0-4a0b-8fe6-8efc6e675fa1" alt="Firebase" width="100">    | 10.12.5    |
-
-<br/>
-
-## 4.3 Cooperation
-|  |  |
-|-----------------|-----------------|
-| Git    |  <img src="https://github.com/user-attachments/assets/483abc38-ed4d-487c-b43a-3963b33430e6" alt="git" width="100">    |
-| Git Kraken    |  <img src="https://github.com/user-attachments/assets/32c615cb-7bc0-45cd-91ea-0d1450bfc8a9" alt="git kraken" width="100">    |
-| Notion    |  <img src="https://github.com/user-attachments/assets/34141eb9-deca-416a-a83f-ff9543cc2f9a" alt="Notion" width="100">    |
 
 <br/>
 
