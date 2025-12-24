@@ -16,7 +16,6 @@ https://github.com/user-attachments/assets/fb03c98b-126e-4c9b-aa65-de33d78c05f7
 
 $ npm start
 ```
-[서비스 링크](https://club-project-one.vercel.app/)
 
 <br/>
 <br/>

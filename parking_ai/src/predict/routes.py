@@ -1,6 +1,6 @@
-# app.py
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+# src/predict/routes.py
+
+from flask import Blueprint, request, jsonify
 import pandas as pd
 import numpy as np
 from glob import glob
@@ -9,39 +9,54 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 
-app = Flask(__name__)
-CORS(app, resources={r"/ml/*": {"origins": "*"}})  # 모든 도메인 허용 (개발용)
+# ===============================
+# Blueprint 생성
+# ===============================
+predict_bp = Blueprint("predict", __name__)
 
 # ===============================
 # 설정
 # ===============================
-file_pattern = "../parking_data/2025*.csv"
-use_polynomial = True  # True면 다항 회귀, False면 단순 선형 회귀
+file_pattern = "../../parking_data/2025*.csv"
+use_polynomial = True   # True면 다항 회귀, False면 단순 선형 회귀
 poly_degree = 2         # 다항 차수
 lookback_hours = 2      # 예측 시각 ± 몇 시간 범위 사용할지
-@app.route("/parking_data", methods=["GET"])
+
+# ===============================
+# 상세 분석
+# ===============================
+@predict_bp.route("/parking_data", methods=["GET"])
 def get_parking_data():
     today = datetime.today()
     last_week_date = today - timedelta(days=7)
+
     # 오늘 요일 기준으로 지난주 같은 요일
     diff = today.weekday() - last_week_date.weekday()
     last_week_date = last_week_date + timedelta(days=diff)
 
-    file_name = f"../parking_data/{last_week_date.strftime('%Y%m%d')}.csv"
+    file_name = f"../../parking_data/{last_week_date.strftime('%Y%m%d')}.csv"
+
     try:
         df = pd.read_csv(file_name)
         df = df[["PKLT_NM", "timestamp", "liveCnt", "remainCnt"]]
         return jsonify(df.to_dict(orient="records"))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-@app.route("/predict_remain", methods=["POST"])
+
+
+# ===============================
+# 주차 여석 예측
+# ===============================
+@predict_bp.route("/predict_remain", methods=["POST"])
 def predict_remain():
     data_json = request.get_json()
+
     if not data_json:
         return jsonify({"error": "JSON body required"}), 400
 
     target_cd = str(data_json.get("target_cd"))
     minutes_ahead = data_json.get("minutesAhead")
+
     if target_cd is None or minutes_ahead is None:
         return jsonify({"error": "target_cd and minutesAhead required"}), 400
 
@@ -120,12 +135,18 @@ def predict_remain():
         ]
 
     train_data = pd.concat([past_same_weekday, today_data])
+
     print(train_data.head(50))
     print(train_data.tail(50))
+
     # ===============================
     # 이동평균 스무싱
     # ===============================
-    train_data["remainCnt_smooth"] = train_data["remainCnt"].rolling(3, min_periods=1).mean()
+    train_data["remainCnt_smooth"] = (
+        train_data["remainCnt"]
+        .rolling(3, min_periods=1)
+        .mean()
+    )
 
     X = train_data["minutes"].values.reshape(-1, 1)
     y = train_data["remainCnt_smooth"].values
@@ -133,12 +154,14 @@ def predict_remain():
     # ===============================
     # 최근 데이터 가중치 적용
     # ===============================
-    # 예측시간(future_minute)과 가까울수록 가중치 크게
     weights = 1 + 10 / (future_minute - train_data["minutes"] + 1)
     weights = np.clip(weights, 1, 10)
 
     if use_polynomial:
-        model = make_pipeline(PolynomialFeatures(poly_degree), LinearRegression())
+        model = make_pipeline(
+            PolynomialFeatures(poly_degree),
+            LinearRegression()
+        )
         model.fit(X, y, linearregression__sample_weight=weights)
     else:
         model = LinearRegression()
@@ -163,7 +186,3 @@ def predict_remain():
         "weekday": target_weekday,
         "count": len(train_data)
     })
-
-
-if __name__ == "__main__":
-    app.run(port=5000, debug=True)
