@@ -169,7 +169,7 @@ export default function Main() {
 
   //로그인정보 가져옴
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch("/api/user/me", { credentials: "include" })
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           setUser(data);

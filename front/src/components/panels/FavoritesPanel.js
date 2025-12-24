@@ -155,7 +155,7 @@ export default function FavoritesPanel({ map, ParkingList, onRerouteClick, doRou
         let abort = false;
         (async () => {
             try {
-                const res = await fetch("/api/auth/me", { credentials: "include" });
+                const res = await fetch("/api/user/me", { credentials: "include" });
                 const data = res.ok ? await res.json() : null;
                 if (!abort) setMe(data || null);
             } catch {

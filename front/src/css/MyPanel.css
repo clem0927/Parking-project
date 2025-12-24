@@ -149,3 +149,213 @@
 .my-fav-list::-webkit-scrollbar-track {
   background: transparent;
 }
+/* ===== My Panel (즐겨찾기 / 포인트 / 정보수정) ===== */
+.my-panel {
+  padding-top: 4px;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* --- 하위 내브바 --- */
+.my-subnav {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.my-subnav button {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  color: #6b7280; /* 비활성 색 */
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+}
+
+.my-subnav button.active {
+  border-bottom: 2px solid #3897f0; /* 변경: 파랑 연한색 */
+  color: #111827;
+  background: #f3f4f6;
+}
+
+.my-subnav button:hover {
+  background: #f9fafb;
+}
+
+/* --- 탭 내용 영역 --- */
+.my-tab-content {
+  padding: 8px 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* 즐겨찾기 리스트 */
+.my-fav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 각 즐겨찾기 카드 */
+.my-fav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eef0f4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.my-fav-main {
+  flex: 1 1 auto;
+  min-width: 0; /* ellipsis용 */
+}
+
+/* 주차장 이름 */
+.my-fav-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+/* 잔여/전체 텍스트 */
+.my-fav-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 버튼 영역 */
+.my-fav-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 버튼 공통 */
+.my-fav-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+/* 프라이머리 버튼 */
+.my-fav-btn-primary {
+  background: #3897f0; /* 변경: 연한 파랑 */
+  color: #fff;
+  border-color: #3897f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.my-fav-btn-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.my-fav-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* 고스트 버튼 (삭제 등) */
+.my-fav-btn-ghost {
+  background: #fff;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.my-fav-btn-ghost:hover {
+  background: #f9fafb;
+  transform: translateY(-1px);
+}
+
+.my-fav-btn-ghost:active {
+  transform: translateY(0);
+}
+
+/* 비어있을 때 안내 박스 */
+.my-empty {
+  padding: 14px 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px dashed #e5e7eb;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* 스크롤바 (크롬/엣지) */
+.my-tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+.my-tab-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+.my-tab-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 정보 수정 폼 */
+.my-tab-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-tab-content form input {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  width: 250px;
+}
+
+.my-tab-content form button {
+  width: 100px;
+  align-self: flex-start;
+  background: #3897f0; /* 연한 파랑 */
+  color: #fff;
+  border: 1px solid #3897f0;
+}
+/* --- 삭제 / 탈퇴 버튼 (레드 스타일) --- */
+/* danger 버튼 (탈퇴) */
+.danger {
+  background: #ef4444 !important; /* 기본 빨강 */
+  color: #fff;
+  border: 1px solid #dc2626 !important;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.danger:hover {
+  transform: translateY(-1px);
+}
+
+.danger:active {
+  background: #ef4444; /* 클릭 시 원래 빨강 */
+  transform: translateY(0);
+}
