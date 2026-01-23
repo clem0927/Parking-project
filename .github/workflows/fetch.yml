@@ -1,6 +1,6 @@
 name: Fetch Parking Data
 
-on:
+#on:
   schedule:
     # 한국 06~08시 (UTC 21~23시 전날)
     - cron: "0,10,20,30,40,50 21-23 * * *"
